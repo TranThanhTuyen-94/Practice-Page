@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lưu điểm</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 60px;}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{color:var(--muted);font-size:14px;margin-bottom:20px;}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:22px;margin-bottom:16px;box-shadow:var(--shadow-sm);
+}
+label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;text-align:center;}
+input{
+  width:100%;border:1px solid var(--border);border-radius:var(--radius-md);padding:9px 6px;
+  font-size:14px;font-family:inherit;color:var(--ink);background:#fff;text-align:center;
+}
+.test-name-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.test-fixed{
+  background:var(--primary-bg);color:var(--primary);font-weight:700;font-size:14px;
+  padding:10px 14px;border-radius:var(--radius-md);white-space:nowrap;
+}
+.section-label{font-size:13px;font-weight:700;color:var(--ink);margin:18px 0 8px;}
+
+/* Nghe: 4 ô/hàng — Đọc: 3 ô/hàng, mỗi ô label nằm trên, input nằm dưới */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.part-max{display:block;font-size:9px;color:var(--muted);font-weight:400;margin-top:1px;}
+
+.result-box{
+  background:var(--primary-bg);border-radius:var(--radius-lg);padding:18px;margin-top:20px;
+}
+.result-title{font-size:11px;font-weight:700;color:var(--primary);letter-spacing:.03em;margin-bottom:12px;}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.result-label{font-size:11px;color:var(--muted);text-transform:uppercase;}
+.result-value{font-size:18px;font-weight:700;margin-top:2px;}
+.overall-box{background:#fff;border-radius:var(--radius-md);padding:14px;text-align:center;}
+.overall-label{font-size:11px;color:var(--muted);text-transform:uppercase;}
+.overall-value{font-size:28px;font-weight:800;color:var(--green-text);margin-top:2px;}
+
+.btn{
+  border:none;border-radius:var(--radius-md);padding:13px 20px;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:inherit;width:100%;
+}
+.btn-primary{background:var(--primary);color:#fff;margin-top:16px;}
+.msg{font-size:13px;margin-top:10px;text-align:center;}
+.msg.ok{color:var(--green-text);}
+.msg.err{color:#c0392b;}
+
+/* ===== Dashboard tiến bộ ===== */
+.dash-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.dash-name{font-size:17px;font-weight:800;color:var(--primary);}
+.dash-sub{font-size:13px;color:var(--muted);margin-top:2px;}
+.target-badge{border:1px solid #d0392b;color:#d0392b;font-size:12px;font-weight:700;padding:4px 10px;border-radius:var(--radius-pill);white-space:nowrap;}
+.chart-wrap{height:200px;margin-top:16px;}
+
+.dt-title{font-size:14px;font-weight:700;margin:22px 0 10px;}
+.dt-table{width:100%;border-collapse:collapse;font-size:12px;}
+.dt-table th,.dt-table td{padding:8px 4px;text-align:center;border-bottom:1px solid var(--border);}
+.dt-table th{color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;}
+.dt-band-row{background:var(--green-bg);font-weight:700;color:var(--green-text);}
+.dt-table td.weak{background:#fde3e3;color:#c0392b;font-weight:700;border-radius:4px;}
+.dt-table td.total{font-weight:700;}
+.dt-testname{color:var(--primary);font-weight:700;}
+
+.suggest-box{
+  background:#fde3e3;border:1px solid #f3b8b8;border-radius:var(--radius-md);
+  padding:14px 16px;margin-top:18px;font-size:13px;color:#a32d2d;line-height:1.6;
+}
+.chart-empty{text-align:center;color:var(--muted);font-size:13px;padding:20px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="page-title">📊 Lưu điểm Test</div>
+  <div class="page-sub">Nhập số câu đúng từng Part, hệ thống tự quy đổi điểm.</div>
+
+  <div class="card">
+    <label style="text-align:left">Tên Test</label>
+    <div class="test-name-row">
+      <div class="test-fixed">TEST</div>
+      <input type="number" id="testNum" placeholder="Số thứ tự, vd: 5" min="1" style="text-align:left">
+    </div>
+
+    <div class="section-label">🎧 Nghe (Listening)</div>
+    <div class="grid-4">
+      <div><label>P1<span class="part-max">Max 6</span></label><input type="number" id="p1" min="0" max="6" value="0"></div>
+      <div><label>P2<span class="part-max">Max 25</span></label><input type="number" id="p2" min="0" max="25" value="0"></div>
+      <div><label>P3<span class="part-max">Max 39</span></label><input type="number" id="p3" min="0" max="39" value="0"></div>
+      <div><label>P4<span class="part-max">Max 30</span></label><input type="number" id="p4" min="0" max="30" value="0"></div>
+    </div>
+
+    <div class="section-label">📖 Đọc (Reading)</div>
+    <div class="grid-3">
+      <div><label>P5<span class="part-max">Max 30</span></label><input type="number" id="p5" min="0" max="30" value="0"></div>
+      <div><label>P6<span class="part-max">Max 16</span></label><input type="number" id="p6" min="0" max="16" value="0"></div>
+      <div><label>P7<span class="part-max">Max 54</span></label><input type="number" id="p7" min="0" max="54" value="0"></div>
+    </div>
+
+    <div class="result-box">
+      <div class="result-title">KẾT QUẢ QUY ĐỔI</div>
+      <div class="result-grid">
+        <div><div class="result-label">Câu đúng Nghe</div><div class="result-value" id="rCauNghe">0/100</div></div>
+        <div><div class="result-label">Câu đúng Đọc</div><div class="result-value" id="rCauDoc">0/100</div></div>
+        <div><div class="result-label">Điểm Nghe</div><div class="result-value" id="rDiemNghe">5</div></div>
+        <div><div class="result-label">Điểm Đọc</div><div class="result-value" id="rDiemDoc">5</div></div>
+      </div>
+      <div class="overall-box">
+        <div class="overall-label">Tổng điểm Overall</div>
+        <div class="overall-value" id="rTong">10</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveResult()">💾 Lưu Kết Quả</button>
+    <div class="msg" id="saveMsg"></div>
+  </div>
+
+  <!-- DASHBOARD TIẾN BỘ — ẩn mặc định, bấm nút mới hiện -->
+  <button class="btn" style="background:var(--primary-bg);color:var(--primary);margin-top:0" onclick="toggleDashboard()">📈 Biểu đồ điểm 5 test gần nhất</button>
+  <div class="card dash-box" id="dashCard" style="display:none">
+    <div class="dash-header">
+      <div>
+        <div class="dash-name" id="dashName"></div>
+        <div class="dash-sub" id="dashSub"></div>
+      </div>
+      <div class="target-badge" id="dashTarget" style="display:none"></div>
+    </div>
+    <div class="chart-wrap"><canvas id="progChart"></canvas></div>
+
+    <div class="dt-title">Chi tiết 4 đề gần nhất</div>
+    <div style="overflow-x:auto"><table class="dt-table" id="dtTable"></table></div>
+
+    <div class="suggest-box" id="suggestBox" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const params     = new URLSearchParams(window.location.search);
+const maHV       = params.get('maHV')  || '';
+const tenHV      = params.get('tenHV') || '';
+const SCRIPT_URL = params.get('apiUrl') || 'https://script.google.com/macros/s/AKfycbyDVGTlWSWoAEtAMfv4PAAIZkMLudH_QOiomldb1mx69zR_mk6UAS8AjRTmOfg3wCPiZQ/exec';
+
+const partIds = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'];
+let previewTimer = null;
+let progChart = null;
+let dashboardLoaded = false;
+
+// Bản sao REFERENCE_BANDS (tĩnh, dùng để vẽ dashboard phía client)
+const REFERENCE_BANDS = [
+  { bandName: '850+', overallScore: 850, partScores: [6, 24, 32, 25, 27, 14, 43] },
+  { bandName: '800+', overallScore: 800, partScores: [5, 22, 30, 25, 27, 14, 40] },
+  { bandName: '750+', overallScore: 750, partScores: [5, 22, 28, 23, 27, 14, 37] },
+  { bandName: '700+', overallScore: 700, partScores: [5, 22, 26, 22, 25, 12, 35] },
+  { bandName: '650+', overallScore: 650, partScores: [5, 21, 25, 20, 25, 12, 30] },
+  { bandName: '600+', overallScore: 600, partScores: [5, 20, 24, 18, 24, 10, 28] },
+  { bandName: '550+', overallScore: 550, partScores: [4, 19, 23, 16, 23, 9, 26] },
+  { bandName: '500+', overallScore: 500, partScores: [4, 18, 21, 15, 22, 8, 25] }
+];
+
+async function apiGet(action, p) {
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.set('action', action);
+  Object.entries(p || {}).forEach(([k, v]) => url.searchParams.set(k, v));
+  return (await fetch(url)).json();
+}
+async function apiPost(body) {
+  return (await fetch(SCRIPT_URL, {
+    method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(body)
+  })).json();
+}
+
+function getPartValues() {
+  const p = {};
+  partIds.forEach(id => p[id] = Number(document.getElementById(id).value) || 0);
+  return p;
+}
+
+function schedulePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(updatePreview, 300);
+}
+async function updatePreview() {
+  const res = await apiGet('previewDiem', getPartValues());
+  if (res.error) return;
+  document.getElementById('rCauNghe').textContent  = res.cauDungNghe + '/100';
+  document.getElementById('rCauDoc').textContent   = res.cauDungDoc + '/100';
+  document.getElementById('rDiemNghe').textContent = res.diemNghe;
+  document.getElementById('rDiemDoc').textContent  = res.diemDoc;
+  document.getElementById('rTong').textContent     = res.tongDiem;
+}
+partIds.forEach(id => document.getElementById(id).addEventListener('input', schedulePreview));
+
+async function saveResult() {
+  const numEl = document.getElementById('testNum');
+  const num = numEl.value.trim();
+  const msg = document.getElementById('saveMsg');
+  if (!num) { msg.className = 'msg err'; msg.textContent = 'Nhập số thứ tự bài Test.'; return; }
+
+  const body = Object.assign({ action: 'saveDiemTest', maHV, tenHV, tenTest: 'TEST ' + num }, getPartValues());
+  msg.className = 'msg'; msg.textContent = 'Đang lưu...';
+  const res = await apiPost(body);
+  if (res.error) { msg.className = 'msg err'; msg.textContent = res.error; return; }
+  msg.className = 'msg ok'; msg.textContent = `Đã lưu! Tổng điểm: ${res.tongDiem}`;
+  numEl.value = '';
+  if (dashboardLoaded) loadDashboard();
+}
+
+// ====== Chọn mốc mục tiêu tiếp theo dựa trên điểm gần nhất ======
+function pickTargetBand(score) {
+  const asc = REFERENCE_BANDS.slice().sort((a, b) => a.overallScore - b.overallScore);
+  for (const b of asc) if (b.overallScore > score) return b;
+  return asc[asc.length - 1];
+}
+
+// ====== Dashboard tiến bộ: header + biểu đồ + bảng chi tiết + đề xuất ======
+async function loadDashboard() {
+  const history = await apiGet('getDiemTestHistory', { maHV });
+  document.getElementById('dashName').textContent = tenHV || maHV;
+
+  if (!history || history.length < 1) {
+    document.getElementById('dashSub').textContent = 'Chưa có đề nào được lưu.';
+    document.getElementById('dtTable').innerHTML = '';
+    document.getElementById('suggestBox').style.display = 'none';
+    document.getElementById('dashTarget').style.display = 'none';
+    if (progChart) { progChart.destroy(); progChart = null; }
+    return;
+  }
+
+  document.getElementById('dashSub').textContent = `Đã làm ${history.length} đề`;
+  const latest = history[history.length - 1];
+  const target = pickTargetBand(Number(latest.tongDiem));
+  document.getElementById('dashTarget').style.display = 'inline-block';
+  document.getElementById('dashTarget').textContent = 'Mục tiêu: ' + target.overallScore;
+
+  // Biểu đồ: 5 test gần nhất, Score thực tế + đường Target ngang
+  const last5 = history.slice(-5);
+  if (progChart) progChart.destroy();
+  progChart = new Chart(document.getElementById('progChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: last5.map(x => x.tenTest || x.ngay),
+      datasets: [
+        { label: 'Score', data: last5.map(x => Number(x.tongDiem)), borderColor: 'var(--primary)', backgroundColor: 'rgba(0,0,0,0)', tension: .3, pointRadius: 4, borderWidth: 2.5 },
+        { label: 'Target', data: last5.map(() => target.overallScore), borderColor: '#2eb872', borderDash: [5, 4], pointRadius: 3, borderWidth: 2 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+      scales: { y: { ticks: { font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } }
+    }
+  });
+
+  // Bảng chi tiết 4 đề gần nhất — mới nhất lên đầu
+  const last4 = history.slice(-4).reverse();
+  const partLabels = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7'];
+  let tableHtml = `<tr><th>Test</th><th>Total</th><th>L</th><th>R</th>${partLabels.map(p => `<th>${p}</th>`).join('')}</tr>`;
+  tableHtml += `<tr class="dt-band-row"><td>${target.bandName}</td><td>-</td><td>-</td><td>-</td>${target.partScores.map(v => `<td>&gt;${v}</td>`).join('')}</tr>`;
+  last4.forEach(t => {
+    const parts = [t.p1, t.p2, t.p3, t.p4, t.p5, t.p6, t.p7].map(Number);
+    tableHtml += `<tr><td class="dt-testname">${t.tenTest}</td><td class="total">${t.tongDiem}</td><td>${t.cauDungNghe}</td><td>${t.cauDungDoc}</td>`;
+    tableHtml += parts.map((v, i) => `<td class="${v < target.partScores[i] ? 'weak' : ''}">${v}</td>`).join('');
+    tableHtml += '</tr>';
+  });
+  document.getElementById('dtTable').innerHTML = tableHtml;
+
+  // Đề xuất: Part nào bị đỏ (dưới mốc) nhiều lần nhất trong 4 đề gần nhất
+  const counts = [0, 0, 0, 0, 0, 0, 0];
+  last4.forEach(t => {
+    const parts = [t.p1, t.p2, t.p3, t.p4, t.p5, t.p6, t.p7].map(Number);
+    parts.forEach((v, i) => { if (v < target.partScores[i]) counts[i]++; });
+  });
+  let maxIdx = -1, maxCount = 0;
+  counts.forEach((c, i) => { if (c > maxCount) { maxCount = c; maxIdx = i; } });
+  const box = document.getElementById('suggestBox');
+  if (maxCount > 0) {
+    box.style.display = 'block';
+    box.innerHTML = `<b>ĐỀ XUẤT:</b> Phần P${maxIdx + 1} bị yếu (đỏ ${maxCount}/${last4.length} lần) → Đề xuất luyện tập bổ sung phần này.`;
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function toggleDashboard() {
+  const box = document.getElementById('dashCard');
+  const willShow = box.style.display === 'none';
+  box.style.display = willShow ? 'block' : 'none';
+  if (willShow && !dashboardLoaded) { dashboardLoaded = true; loadDashboard(); }
+}
+
+updatePreview();
+</script>
+</body>
+</html>

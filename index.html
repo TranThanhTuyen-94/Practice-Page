@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Practice</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Gợi ý cài bản mobile khi mở bằng điện thoại — chỉ hiện trên màn hình nhỏ -->
+<div id="mobileBanner" style="display:none;background:#4c3fd6;color:#fff;padding:12px 16px;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+  <span>📱 Bạn đang dùng điện thoại — thử bản mobile gọn hơn nhé!</span>
+  <a href="app.html" style="background:#fff;color:#4c3fd6;font-weight:700;padding:6px 14px;border-radius:999px;text-decoration:none;white-space:nowrap;">Mở bản mobile</a>
+</div>
+<script>
+  if (window.innerWidth <= 480) document.getElementById('mobileBanner').style.display = 'flex';
+</script>
+
+<!-- LANDING -->
+<div class="landing" id="landing">
+  <div class="landing-icon">📖</div>
+  <div class="landing-title">English Practice</div>
+  <div class="landing-sub">Bạn là học viên mới hay cũ?</div>
+
+  <!-- Bước 1: Chọn loại -->
+  <div id="step-user-type">
+    <div class="flex gap-8 mb-12 flex-wrap">
+      <button class="btn btn-ghost" style="flex:1" onclick="showStep('step-user-old')">Học viên cũ</button>
+      <button class="btn btn-primary" style="flex:1" onclick="showStep('step-user-new')">Tạo tài khoản mới</button>
+    </div>
+  </div>
+
+  <!-- Bước 2a: Học viên cũ -->
+  <div id="step-user-old" style="display:none" class="step-box">
+    <div class="step-title">Nhập tên để tìm tài khoản</div>
+    <div class="form-group">
+      <input class="inp" id="oldName" placeholder="Họ và tên..." oninput="searchStudentsByName(this.value)" autocomplete="off">
+    </div>
+    <div id="searchResults" style="display:none" class="search-results"></div>
+    <div class="form-err" id="oldErr"></div>
+    <div class="back-link" onclick="showStep('step-user-type')">← Quay lại</div>
+  </div>
+
+  <!-- Bước 2b: Tạo mới -->
+  <div id="step-user-new" style="display:none" class="step-box">
+    <div class="step-title">✨ Tạo tài khoản mới</div>
+    <div class="form-group">
+      <input class="inp" id="newName" placeholder="Họ và tên đầy đủ...">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="createNewStudent()">Tạo tài khoản</button>
+    <div class="form-err mt-8" id="newErr"></div>
+    <div class="back-link" onclick="showStep('step-user-type')">← Quay lại</div>
+  </div>
+
+  <!-- Bước 3: Xác nhận tạo xong -->
+  <div id="step-created" style="display:none" class="step-box">
+    <div style="text-align:center;font-size:40px;margin-bottom:12px">🎉</div>
+    <div class="step-title" style="text-align:center">Tài khoản đã được tạo!</div>
+    <div class="confirm-card">
+      <div class="confirm-row"><span class="confirm-key">Họ và tên</span><span class="confirm-val" id="createdName"></span></div>
+      <div class="confirm-row"><span class="confirm-key">Mã học viên</span><span class="confirm-val primary" id="createdMaHV"></span></div>
+      <div class="confirm-row"><span class="confirm-key">Ngày bắt đầu</span><span class="confirm-val" id="createdNgay"></span></div>
+    </div>
+    <div class="form-hint mb-12" style="text-align:center">Ghi nhớ mã học viên để đăng nhập lần sau nhé!</div>
+    <button class="btn btn-primary btn-block" onclick="showStep('step-user-type')">Về trang chủ</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column;height:100vh">
+  <div class="top-bar">
+    <div class="top-logo">English Practice</div>
+    <div class="top-user">
+      <span id="topUserName"></span>
+    </div>
+  </div>
+
+  <!--
+    DANH SÁCH TAB CỐ ĐỊNH — "khai sinh trước".
+    Tên file đã chốt, KHÔNG đổi lại sau này. Module nào chưa có file .html
+    tương ứng sẽ hiện lỗi "không tìm thấy" trong khung — bình thường, cứ
+    tạo đúng tên file rồi push lên Git là tab đó tự chạy, không cần sửa
+    lại file index.html này nữa.
+  -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('luyendich',this)">Luyện dịch</button>
+    <button class="tab-btn" onclick="switchTab('luyennghe',this)">Luyện nghe</button>
+    <button class="tab-btn" onclick="switchTab('nguphap',this)">Ngữ pháp cơ bản</button>
+    <button class="tab-btn" onclick="switchTab('lopluyende',this)">Lớp luyện đề</button>
+    <button class="tab-btn" onclick="switchTab('quanlytuvung',this)">Quản lý từ vựng</button>
+    <button class="tab-btn" onclick="switchTab('luudiem',this)">Lưu điểm</button>
+  </div>
+
+  <div class="frame-wrap" id="frameWrap">
+    <iframe id="frame-luyendich"    class="module-frame active"></iframe>
+    <iframe id="frame-luyennghe"    class="module-frame"></iframe>
+    <iframe id="frame-nguphap"      class="module-frame"></iframe>
+    <iframe id="frame-lopluyende"   class="module-frame"></iframe>
+    <iframe id="frame-quanlytuvung" class="module-frame"></iframe>
+    <iframe id="frame-luudiem"      class="module-frame"></iframe>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7eN5exZWC7VjDTfgduL8ZEqR0RsnykP3gNhozvvNxI41MDLLGvZoX99BE2c9ZMXE_Fw/exec';
+const loaded = {};
+let currentUser = null;
+let searchTimer = null;
+
+async function apiGet(action, params) {
+  const url = new URL(APPS_SCRIPT_URL);
+  url.searchParams.set('action', action);
+  Object.entries(params || {}).forEach(([k, v]) => url.searchParams.set(k, v));
+  return (await fetch(url)).json();
+}
+async function apiPost(body) {
+  return (await fetch(APPS_SCRIPT_URL, {
+    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(body)
+  })).json();
+}
+
+async function searchStudentsByName(val) {
+  const results = document.getElementById('searchResults');
+  document.getElementById('oldErr').textContent = '';
+  if (val.trim().length < 1) { results.style.display = 'none'; return; }
+  results.style.display = 'block';
+  results.innerHTML = '<div class="search-loading">Đang tìm...</div>';
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    const list = await apiGet('searchStudents', { name: val.trim() });
+    if (!list.length) {
+      results.innerHTML = '<div class="search-empty">Không tìm thấy. Thử tên khác hoặc tạo tài khoản mới.</div>';
+      return;
+    }
+    results.innerHTML = list.map(s => `
+      <div class="search-item" onclick="selectStudent('${s.maHV}','${s.tenHV.replace(/'/g,"\\'")}')">
+        <div><div class="si-name">${s.tenHV}</div><div class="si-meta">Lớp: ${s.lop} · ${s.trangThai}</div></div>
+        <div class="si-ma">${s.maHV}</div>
+      </div>`).join('');
+  }, 400);
+}
+
+function selectStudent(maHV, tenHV) {
+  currentUser = { maHV, tenHV };
+  enterApp();
+}
+
+async function createNewStudent() {
+  const ten = document.getElementById('newName').value.trim();
+  if (!ten) { document.getElementById('newErr').textContent = 'Nhập họ tên trước.'; return; }
+  const btn = document.querySelector('#step-user-new .btn-primary');
+  btn.textContent = 'Đang tạo...'; btn.disabled = true;
+  const res = await apiPost({ action: 'createStudent', ten });
+  btn.textContent = 'Tạo tài khoản'; btn.disabled = false;
+  if (res.error) { document.getElementById('newErr').textContent = res.error; return; }
+  document.getElementById('createdName').textContent  = res.tenHV;
+  document.getElementById('createdMaHV').textContent  = res.maHV;
+  document.getElementById('createdNgay').textContent  = res.ngayBatDau;
+  showStep('step-created');
+  document.getElementById('newName').value = '';
+}
+
+function enterApp() {
+  document.getElementById('landing').style.display = 'none';
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+  document.getElementById('topUserName').textContent = currentUser.tenHV + ' · ' + currentUser.maHV;
+  loadFrame('luyendich');
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.module-frame').forEach(f => f.classList.remove('active'));
+  loadFrame(name);
+}
+
+function loadFrame(name) {
+  const frame = document.getElementById('frame-' + name);
+  if (!frame) return;
+  if (!loaded[name]) {
+    const p = new URLSearchParams({ maHV: currentUser.maHV, tenHV: currentUser.tenHV, apiUrl: APPS_SCRIPT_URL });
+    frame.src = name + '.html?' + p.toString();
+    loaded[name] = true;
+  }
+  frame.classList.add('active');
+}
+
+function showStep(id) {
+  ['step-user-type','step-user-old','step-user-new','step-created']
+    .forEach(s => document.getElementById(s).style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+}
+</script>
+</body>
+</html>

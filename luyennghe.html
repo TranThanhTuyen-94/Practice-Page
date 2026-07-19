@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luyện nghe</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 60px;}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{color:var(--muted);font-size:14px;margin-bottom:20px;}
+
+.lesson-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:18px 20px;margin-bottom:12px;cursor:pointer;
+  box-shadow:var(--shadow-sm);transition:box-shadow .15s,border-color .15s;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.lesson-card:hover{border-color:var(--primary);box-shadow:var(--shadow-md);}
+.lesson-title{font-weight:600;font-size:15px;}
+.lesson-meta{font-size:12px;color:var(--muted);margin-top:3px;}
+.empty-state{text-align:center;color:var(--muted);padding:40px 0;font-size:14px;}
+
+.help-fab{
+  position:fixed;top:16px;right:16px;background:var(--primary);color:#fff;
+  border:none;border-radius:var(--radius-pill);padding:9px 16px;font-size:13px;font-weight:600;
+  cursor:pointer;box-shadow:var(--shadow-md);z-index:20;
+}
+
+.player-view{display:none;}
+.player-view.active{display:block;}
+.back-row{margin-bottom:16px;}
+.back-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;}
+.back-btn:hover{color:var(--primary);}
+
+.progress-dots{display:flex;gap:6px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;}
+.dot.done{background:var(--primary);}
+.dot.cur{background:var(--primary);transform:scale(1.4);}
+
+.player-card{
+  background:linear-gradient(160deg,var(--primary) 0%,#4c3fd6 100%);
+  border-radius:28px;padding:32px 26px 28px;text-align:center;
+  box-shadow:0 16px 40px -12px rgba(76,63,214,.45);
+  color:#fff;margin-bottom:16px;position:relative;overflow:hidden;
+}
+.seg-label{opacity:.85;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;}
+.seg-status{font-size:15px;font-weight:600;margin-bottom:22px;min-height:20px;}
+
+.time-row{display:flex;justify-content:space-between;font-size:11px;opacity:.8;margin-bottom:6px;font-variant-numeric:tabular-nums;}
+.progress-track{height:5px;background:rgba(255,255,255,.25);border-radius:99px;overflow:hidden;margin-bottom:26px;}
+.progress-fill{height:100%;background:#fff;border-radius:99px;width:0%;transition:width .1s linear;}
+
+.play-circle{
+  width:76px;height:76px;border-radius:50%;background:#fff;color:var(--primary);
+  border:none;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 22px;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform .12s;
+}
+.play-circle:active{transform:scale(.94);}
+
+.pill-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.pill-btn{
+  border:none;border-radius:var(--radius-pill);padding:11px 20px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:inherit;background:rgba(255,255,255,.18);color:#fff;
+  backdrop-filter:blur(4px);transition:background .15s;
+}
+.pill-btn:hover{background:rgba(255,255,255,.28);}
+.pill-btn:disabled{opacity:.4;cursor:not-allowed;}
+.pill-btn.solid{background:#fff;color:var(--primary);}
+.pill-btn.solid:hover{background:#f0f0ff;}
+
+.script-box{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:20px;margin-top:16px;line-height:1.9;font-size:15px;white-space:pre-wrap;display:none;
+}
+.script-box.show{display:block;}
+
+.full-listen-box{
+  background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius-lg);
+  padding:18px;text-align:center;margin-top:16px;display:none;
+}
+.full-listen-box.show{display:block;}
+
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;
+  align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff;border-radius:var(--radius-lg);padding:24px;max-width:480px;width:100%;}
+.modal-box h3{margin-bottom:12px;font-size:16px;}
+.modal-close{margin-top:16px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-pill);padding:10px 18px;cursor:pointer;font-family:inherit;font-weight:600;}
+</style>
+</head>
+<body>
+
+<button class="help-fab" onclick="showHelp()">❓ Xem hướng dẫn</button>
+
+<div class="wrap">
+
+  <div id="listView">
+    <div class="page-title">🎧 Luyện nghe — Blind Shadowing</div>
+    <div class="page-sub">Chọn 1 bài, nghe từng đoạn nhỏ và tự lặp lại theo trí nhớ — không nhìn chữ.</div>
+    <div id="lessonList"><div class="empty-state">Đang tải...</div></div>
+  </div>
+
+  <div class="player-view" id="playerView">
+    <div class="back-row"><button class="back-btn" onclick="backToList()">← Quay lại danh sách</button></div>
+    <div class="page-title" id="curLessonTitle"></div>
+    <div class="page-sub">Nghe từng đoạn, tự lặp lại. Bí quá thì bấm "Hiện script" để dò đúng chỗ.</div>
+
+    <div class="progress-dots" id="progressDots"></div>
+
+    <div class="player-card">
+      <div class="seg-label" id="segLabel">Sẵn sàng</div>
+      <div class="seg-status" id="segStatus">Bấm nút để bắt đầu</div>
+
+      <div class="time-row"><span id="timeCur">0:00</span><span id="timeTotal">0:00</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+      <audio id="player" style="display:none"></audio>
+
+      <button class="play-circle" id="playCircleBtn" onclick="handleMainButton()">▶</button>
+
+      <div class="pill-row" id="pillRow" style="display:none">
+        <button class="pill-btn" onclick="replaySegment()">🔁 Nghe lại</button>
+        <button class="pill-btn solid" id="nextBtn" onclick="nextSegment()">Tiếp theo →</button>
+      </div>
+      <div class="pill-row" id="scriptRow" style="display:none;margin-top:10px">
+        <button class="pill-btn" onclick="toggleScript()">📄 Hiện script</button>
+      </div>
+    </div>
+
+    <div class="script-box" id="scriptBox"></div>
+
+    <div class="full-listen-box" id="fullListenBox">
+      <div style="font-weight:600;margin-bottom:10px">🎉 Bạn đã nghe hết các đoạn!</div>
+      <button class="pill-btn solid" style="color:var(--green-text);background:#fff" onclick="listenFull()">▶️ Nghe cả bài</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="helpModal">
+  <div class="modal-box">
+    <h3>Hướng dẫn Blind Shadowing</h3>
+    <p style="font-size:14px;color:var(--ink-2);line-height:1.7">
+      Nghe từng đoạn nhỏ (không nhìn script), tự lặp lại trong đầu hoặc nói ra.
+      Nếu nghe 2-3 lần vẫn chưa ra, bấm "Hiện script" để xem toàn bộ, dò đúng chỗ khó rồi nghe tiếp.
+      Mục tiêu là tìm ra đúng từ/cụm mình nghe chưa ra.
+    </p>
+    <div id="helpVideoWrap" style="margin-top:14px"></div>
+    <button class="modal-close" onclick="hideHelp()">Đóng</button>
+  </div>
+</div>
+
+<script>
+const params     = new URLSearchParams(window.location.search);
+const maHV       = params.get('maHV')  || '';
+const tenHV      = params.get('tenHV') || '';
+const SCRIPT_URL = params.get('apiUrl') || 'https://script.google.com/macros/s/AKfycbyDVGTlWSWoAEtAMfv4PAAIZkMLudH_QOiomldb1mx69zR_mk6UAS8AjRTmOfg3wCPiZQ/exec';
+const DRIVE_API_KEY = 'AIzaSyBexzF_QAD0bbe-rnoCVCzpWd6I9xeurO0';
+
+const HUONG_DAN_VIDEO_URL = '';
+
+let lessons = [];
+let cur = null;
+let segStarts = [], segEnds = [];
+let curSeg = 0;
+let started = false;
+let totalDuration = 0;
+
+async function apiGet(action, p) {
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.set('action', action);
+  Object.entries(p || {}).forEach(([k, v]) => url.searchParams.set(k, v));
+  return (await fetch(url)).json();
+}
+
+function fmtTime(s) {
+  if (!isFinite(s) || s < 0) s = 0;
+  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+async function loadLessons() {
+  lessons = await apiGet('getLuyenNgheList');
+  const box = document.getElementById('lessonList');
+  if (!lessons || !lessons.length) {
+    box.innerHTML = '<div class="empty-state">Chưa có bài luyện nghe nào.</div>';
+    return;
+  }
+  box.innerHTML = lessons.map((l, i) => `
+    <div class="lesson-card" onclick="openLesson(${i})">
+      <div>
+        <div class="lesson-title">${l.ten}</div>
+        <div class="lesson-meta">${l.mocNgat.length + 1} đoạn</div>
+      </div>
+      <div style="font-size:20px">▶️</div>
+    </div>`).join('');
+}
+
+function openLesson(i) {
+  cur = lessons[i];
+  document.getElementById('listView').style.display = 'none';
+  document.getElementById('playerView').classList.add('active');
+  document.getElementById('curLessonTitle').textContent = cur.ten;
+  document.getElementById('scriptBox').textContent = cur.script;
+  document.getElementById('scriptBox').classList.remove('show');
+  document.getElementById('fullListenBox').classList.remove('show');
+  document.getElementById('pillRow').style.display = 'none';
+  document.getElementById('scriptRow').style.display = 'none';
+  document.getElementById('segLabel').textContent = 'Sẵn sàng';
+  document.getElementById('segStatus').textContent = 'Bấm nút để bắt đầu';
+  document.getElementById('playCircleBtn').textContent = '▶';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('timeCur').textContent = '0:00';
+  document.getElementById('timeTotal').textContent = '0:00';
+
+  const player = document.getElementById('player');
+  player.src = `https://www.googleapis.com/drive/v3/files/${cur.audioFileId}?alt=media&key=${DRIVE_API_KEY}`;
+  player.ontimeupdate = onTimeUpdate;
+
+  curSeg = 0;
+  started = false;
+  player.onloadedmetadata = () => {
+    segStarts = [0, ...cur.mocNgat];
+    segEnds   = [...cur.mocNgat, player.duration];
+    totalDuration = player.duration;
+    document.getElementById('timeTotal').textContent = fmtTime(totalDuration);
+    renderDots();
+  };
+}
+
+function backToList() {
+  document.getElementById('player').pause();
+  document.getElementById('playerView').classList.remove('active');
+  document.getElementById('listView').style.display = 'block';
+}
+
+function renderDots() {
+  const box = document.getElementById('progressDots');
+  box.innerHTML = segStarts.map((_, i) =>
+    `<div class="dot ${i < curSeg ? 'done' : ''} ${i === curSeg ? 'cur' : ''}"></div>`).join('');
+}
+
+function handleMainButton() {
+  const player = document.getElementById('player');
+  if (!started) {
+    started = true;
+    document.getElementById('pillRow').style.display = 'flex';
+    document.getElementById('scriptRow').style.display = 'flex';
+    playSegment(0);
+    return;
+  }
+  if (player.paused) { player.play(); document.getElementById('playCircleBtn').textContent = '❚❚'; }
+  else { player.pause(); document.getElementById('playCircleBtn').textContent = '▶'; }
+}
+
+function playSegment(i) {
+  curSeg = i;
+  renderDots();
+  document.getElementById('segLabel').textContent = `Đoạn ${i + 1} / ${segStarts.length}`;
+  document.getElementById('segStatus').textContent = 'Đang phát...';
+  document.getElementById('playCircleBtn').textContent = '❚❚';
+  document.getElementById('nextBtn').disabled = false;
+
+  const player = document.getElementById('player');
+  player.currentTime = segStarts[i];
+  player.play();
+}
+
+function onTimeUpdate() {
+  const player = document.getElementById('player');
+  if (!started || curSeg >= segStarts.length) return;
+  const segEnd = segEnds[curSeg];
+  // Hiện đúng vị trí thật trên CẢ BÀI (không phải tính lại từ đầu đoạn) — giống player nhạc thật:
+  // đoạn 17 dừng ở phút 3:40 thì thanh tiến trình cũng nằm đúng ở vị trí 3:40/tổng bài.
+  document.getElementById('timeCur').textContent = fmtTime(player.currentTime);
+  document.getElementById('progressFill').style.width = Math.min(100, Math.max(0, (player.currentTime / totalDuration) * 100)) + '%';
+
+  if (player.currentTime >= segEnd - 0.08) {
+    player.pause();
+    document.getElementById('playCircleBtn').textContent = '▶';
+    document.getElementById('segStatus').textContent = 'Đã dừng — nghe lại hoặc tiếp theo?';
+    if (curSeg === segStarts.length - 1) onAllDone();
+  }
+}
+
+function replaySegment() { playSegment(curSeg); }
+function nextSegment() {
+  if (curSeg < segStarts.length - 1) playSegment(curSeg + 1);
+}
+
+function onAllDone() {
+  document.getElementById('fullListenBox').classList.add('show');
+  document.getElementById('nextBtn').disabled = true;
+  if (maHV) {
+    fetch(SCRIPT_URL, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'logActivity', maHV, tenHV, loai: 'Luyện nghe', bai: cur.ten, diem: {} })
+    }).catch(() => {});
+  }
+}
+
+function listenFull() {
+  const player = document.getElementById('player');
+  started = false;
+  player.currentTime = 0;
+  player.play();
+  document.getElementById('segLabel').textContent = 'Nghe cả bài';
+  document.getElementById('segStatus').textContent = 'Đang phát toàn bộ...';
+  document.getElementById('playCircleBtn').textContent = '❚❚';
+  document.getElementById('timeTotal').textContent = fmtTime(player.duration);
+  player.ontimeupdate = () => {
+    document.getElementById('timeCur').textContent = fmtTime(player.currentTime);
+    document.getElementById('progressFill').style.width = Math.min(100, (player.currentTime / player.duration) * 100) + '%';
+    if (player.ended) document.getElementById('playCircleBtn').textContent = '▶';
+  };
+}
+
+function toggleScript() {
+  document.getElementById('scriptBox').classList.toggle('show');
+}
+
+function showHelp() {
+  const wrap = document.getElementById('helpVideoWrap');
+  wrap.innerHTML = HUONG_DAN_VIDEO_URL
+    ? `<a href="${HUONG_DAN_VIDEO_URL}" target="_blank" style="color:var(--primary);font-weight:600">▶️ Mở video hướng dẫn</a>`
+    : `<div style="color:var(--muted);font-size:13px">Video hướng dẫn đang được cập nhật.</div>`;
+  document.getElementById('helpModal').classList.add('show');
+}
+function hideHelp() { document.getElementById('helpModal').classList.remove('show'); }
+
+loadLessons();
+</script>
+</body>
+</html>

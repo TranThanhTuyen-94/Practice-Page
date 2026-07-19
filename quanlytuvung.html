@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý từ vựng</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px 60px;}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{color:var(--muted);font-size:14px;margin-bottom:20px;}
+.back-row{margin-bottom:16px;}
+.back-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;}
+.back-btn:hover{color:var(--primary);}
+
+.combo-bar{
+  display:none;position:sticky;top:0;z-index:5;
+  background:var(--primary-bg);border:1px solid var(--primary);border-radius:var(--radius-lg);
+  padding:14px 16px;margin-bottom:16px;
+}
+.combo-bar.show{display:block;}
+.combo-count{font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px;}
+.combo-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.combo-actions .gbtn{flex:1;min-width:100px;}
+
+.group-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow-sm);
+  display:flex;gap:12px;align-items:flex-start;
+}
+.group-check{
+  width:20px;height:20px;margin-top:2px;flex-shrink:0;accent-color:var(--primary);cursor:pointer;
+}
+.group-body{flex:1;min-width:0;}
+.group-title{font-weight:600;font-size:15px;margin-bottom:2px;}
+.group-meta{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.group-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.gbtn{
+  flex:1;min-width:100px;border:none;border-radius:var(--radius-md);padding:9px 12px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.gbtn-list{background:var(--primary-bg);color:var(--primary);}
+.gbtn-review{background:var(--amber-bg);color:var(--amber-dark);}
+.gbtn-quiz{background:var(--green-bg);color:var(--green-text);}
+.empty-state{text-align:center;color:var(--muted);padding:40px 0;font-size:14px;}
+
+.word-row{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);
+  padding:12px 16px;margin-bottom:8px;
+}
+.word-en{font-weight:600;font-size:15px;}
+.word-vi{font-size:13px;color:var(--muted);margin-top:2px;}
+.word-src{font-size:10px;color:var(--muted);margin-top:2px;font-style:italic;}
+.speak-btn{background:var(--primary-bg);color:var(--primary);border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;flex-shrink:0;}
+
+.review-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);
+  padding:44px 24px;text-align:center;box-shadow:var(--shadow-md);
+}
+.review-count{color:var(--muted);font-size:13px;margin-bottom:20px;}
+.review-word{font-size:30px;font-weight:700;color:var(--primary);margin-bottom:14px;}
+.review-hint{font-style:italic;color:var(--muted);font-size:15px;min-height:22px;margin-bottom:24px;}
+.review-ctrl{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.rbtn{border:none;border-radius:var(--radius-md);padding:13px 22px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;min-width:120px;}
+.rbtn-hint{background:var(--amber-bg);color:var(--amber-dark);}
+.rbtn-next{background:var(--primary);color:#fff;}
+.review-done{text-align:center;padding:20px 0;}
+
+.quiz-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);
+  padding:36px 24px;box-shadow:var(--shadow-md);
+}
+.quiz-progress{font-size:13px;color:var(--muted);text-align:center;margin-bottom:10px;}
+.timer-track{height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:24px;}
+.timer-fill{height:100%;background:var(--primary);width:100%;}
+.quiz-word{font-size:26px;font-weight:700;text-align:center;margin-bottom:24px;}
+.opt{
+  display:block;width:100%;text-align:left;background:var(--primary-bg);color:var(--ink);
+  border:1.5px solid transparent;border-radius:var(--radius-md);padding:14px 16px;
+  font-size:14px;font-family:inherit;cursor:pointer;margin-bottom:10px;
+}
+.opt.correct{background:var(--green);color:#fff;}
+.opt.wrong{background:var(--red);color:#fff;}
+.opt:disabled{cursor:default;}
+.quiz-result{text-align:center;padding:20px 0;}
+.quiz-score{font-size:32px;font-weight:700;color:var(--primary);margin:12px 0;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div id="listView">
+    <div class="page-title">📚 Quản lý từ vựng</div>
+    <div class="page-sub">Tick chọn 1 hoặc nhiều bài để gộp lại ôn/kiểm tra chung.</div>
+
+    <div class="combo-bar" id="comboBar">
+      <div class="combo-count" id="comboCount"></div>
+      <div class="combo-actions">
+        <button class="gbtn gbtn-list"   onclick="openComboWordList()">📋 Danh sách từ đã chọn</button>
+        <button class="gbtn gbtn-review" onclick="openComboReview()">🧠 Ôn các bài đã chọn</button>
+        <button class="gbtn gbtn-quiz"   onclick="openComboQuiz()">✅ Kiểm tra các bài đã chọn</button>
+      </div>
+    </div>
+
+    <div id="groupList"><div class="empty-state">Đang tải...</div></div>
+  </div>
+
+  <div id="wordListView" style="display:none">
+    <div class="back-row"><button class="back-btn" onclick="backToList()">← Quay lại</button></div>
+    <div class="page-title" id="wlTitle"></div>
+    <div id="wordListBox"></div>
+  </div>
+
+  <div id="reviewView" style="display:none">
+    <div class="back-row"><button class="back-btn" onclick="backToList()">← Quay lại</button></div>
+    <div class="page-title" id="reviewTitle"></div>
+    <div class="review-card">
+      <div class="review-count" id="reviewCount"></div>
+      <div id="reviewBody"></div>
+    </div>
+  </div>
+
+  <div id="quizView" style="display:none">
+    <div class="back-row"><button class="back-btn" onclick="backToList()">← Quay lại</button></div>
+    <div class="page-title" id="quizTitle"></div>
+    <div class="quiz-card" id="quizBody"></div>
+  </div>
+
+</div>
+
+<script>
+const params     = new URLSearchParams(window.location.search);
+const maHV       = params.get('maHV')  || '';
+const tenHV      = params.get('tenHV') || '';
+const SCRIPT_URL = params.get('apiUrl') || 'https://script.google.com/macros/s/AKfycbyDVGTlWSWoAEtAMfv4PAAIZkMLudH_QOiomldb1mx69zR_mk6UAS8AjRTmOfg3wCPiZQ/exec';
+
+let groups = {};
+let selectedGroups = new Set();
+
+async function apiGet(action, p) {
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.set('action', action);
+  Object.entries(p || {}).forEach(([k, v]) => url.searchParams.set(k, v));
+  return (await fetch(url)).json();
+}
+
+function speak(word) {
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = 'en-US';
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+function firstHint(nghia) {
+  const first = (nghia || '').trim().split(' ')[0] || '';
+  return first ? first + '...' : '(không có gợi ý)';
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function esc(s) { return (s || '').replace(/'/g, "\\'"); }
+
+async function loadGroups() {
+  const list = await apiGet('getVocab', { maHV });
+  groups = {};
+  (list || []).forEach(w => {
+    const key = w.tenBai || '(Chưa rõ bài)';
+    (groups[key] = groups[key] || []).push(w);
+  });
+  renderGroupList();
+}
+
+function renderGroupList() {
+  const box = document.getElementById('groupList');
+  const keys = Object.keys(groups);
+  if (!keys.length) { box.innerHTML = '<div class="empty-state">Chưa lưu từ vựng nào — bôi đen từ khi luyện dịch/nghe để thêm vào đây.</div>'; return; }
+  box.innerHTML = keys.map(k => `
+    <div class="group-card">
+      <input type="checkbox" class="group-check" onchange="toggleSelect('${esc(k)}',this.checked)" ${selectedGroups.has(k) ? 'checked' : ''}>
+      <div class="group-body">
+        <div class="group-title">${k}</div>
+        <div class="group-meta">${groups[k].length} từ</div>
+        <div class="group-actions">
+          <button class="gbtn gbtn-list"   onclick="openWordList('${esc(k)}')">📋 List từ</button>
+          <button class="gbtn gbtn-review" onclick="openReview('${esc(k)}')">🧠 Ôn tập</button>
+          <button class="gbtn gbtn-quiz"   onclick="openQuiz('${esc(k)}')">✅ Kiểm tra</button>
+        </div>
+      </div>
+    </div>`).join('');
+  renderComboBar();
+}
+
+function toggleSelect(name, checked) {
+  if (checked) selectedGroups.add(name); else selectedGroups.delete(name);
+  renderComboBar();
+}
+function renderComboBar() {
+  const bar = document.getElementById('comboBar');
+  if (selectedGroups.size === 0) { bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  document.getElementById('comboCount').textContent = `Đã chọn ${selectedGroups.size} bài — gộp lại thao tác chung:`;
+}
+
+function comboWords() {
+  const seen = new Set(), out = [];
+  selectedGroups.forEach(name => {
+    (groups[name] || []).forEach(w => {
+      const key = w.tuVung + '|' + w.nghia;
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push(Object.assign({}, w, { tenBai: name }));
+    });
+  });
+  return out;
+}
+function comboTitle() { return selectedGroups.size + ' bài đã chọn'; }
+
+function showView(id) {
+  ['listView', 'wordListView', 'reviewView', 'quizView'].forEach(v => document.getElementById(v).style.display = v === id ? 'block' : 'none');
+}
+function backToList() { showView('listView'); }
+
+function openWordList(name) { renderWordList(name, groups[name]); }
+function openComboWordList() { if (selectedGroups.size) renderWordList(comboTitle(), comboWords()); }
+function renderWordList(title, words) {
+  document.getElementById('wlTitle').textContent = '📋 ' + title;
+  document.getElementById('wordListBox').innerHTML = words.map(w => `
+    <div class="word-row">
+      <div>
+        <div class="word-en">${w.tuVung}</div>
+        <div class="word-vi">${w.nghia}</div>
+        ${selectedGroups.size > 1 ? `<div class="word-src">${w.tenBai}</div>` : ''}
+      </div>
+      <button class="speak-btn" onclick="speak('${esc(w.tuVung)}')">🔊</button>
+    </div>`).join('');
+  showView('wordListView');
+}
+
+let reviewQueue = [], reviewIdx = 0, forgottenWords = [];
+function openReview(name) { startReview(name, groups[name]); }
+function openComboReview() { if (selectedGroups.size) startReview(comboTitle(), comboWords()); }
+function startReview(title, words) {
+  document.getElementById('reviewTitle').textContent = '🧠 ' + title;
+  reviewQueue = shuffle(words);
+  reviewIdx = 0; forgottenWords = [];
+  renderReviewCard();
+  showView('reviewView');
+}
+function renderReviewCard() {
+  document.getElementById('reviewCount').textContent = `${reviewIdx + 1} / ${reviewQueue.length}`;
+  const w = reviewQueue[reviewIdx];
+  document.getElementById('reviewBody').innerHTML = `
+    <div class="review-word">${w.tuVung}</div>
+    <div class="review-hint" id="reviewHint"></div>
+    <div class="review-ctrl">
+      <button class="rbtn rbtn-hint" onclick="showReviewHint()">💡 Hint</button>
+      <button class="rbtn rbtn-next" onclick="nextReviewWord()">Next →</button>
+    </div>`;
+}
+function showReviewHint() {
+  const w = reviewQueue[reviewIdx];
+  document.getElementById('reviewHint').textContent = 'Gợi ý: ' + firstHint(w.nghia);
+  if (!forgottenWords.includes(w)) forgottenWords.push(w);
+}
+function nextReviewWord() {
+  reviewIdx++;
+  if (reviewIdx >= reviewQueue.length) { renderReviewDone(); return; }
+  renderReviewCard();
+}
+function renderReviewDone() {
+  const box = document.getElementById('reviewBody');
+  document.getElementById('reviewCount').textContent = 'Hoàn thành!';
+  if (!forgottenWords.length) {
+    box.innerHTML = `<div class="review-done">🎉 Bạn nhớ hết ${reviewQueue.length} từ, không cần bấm Hint từ nào!</div>`;
+    return;
+  }
+  box.innerHTML = `
+    <div class="review-done">Bạn đã bấm Hint ${forgottenWords.length} từ.</div>
+    <div class="review-ctrl" style="margin-top:12px">
+      <button class="rbtn rbtn-hint" onclick="reviewForgottenOnly()">🔁 Ôn lại từ quên</button>
+    </div>`;
+}
+function reviewForgottenOnly() {
+  reviewQueue = shuffle(forgottenWords);
+  reviewIdx = 0; forgottenWords = [];
+  renderReviewCard();
+}
+
+const TIME_PER_WORD = 3000;
+let quizPool = [], quizItems = [], quizIdx = 0, quizCorrect = 0, quizWrong = [], quizTimer = null;
+
+function openQuiz(name) { startQuiz(name, groups[name]); }
+function openComboQuiz() { if (selectedGroups.size) startQuiz(comboTitle(), comboWords()); }
+function startQuiz(title, words) {
+  quizPool = words;
+  document.getElementById('quizTitle').textContent = '✅ ' + title;
+  if (quizPool.length < 3) {
+    document.getElementById('quizBody').innerHTML = '<div class="quiz-result">Cần ít nhất 3 từ trong lựa chọn này để kiểm tra.</div>';
+    showView('quizView');
+    return;
+  }
+  quizItems = shuffle(quizPool);
+  quizIdx = 0; quizCorrect = 0; quizWrong = [];
+  renderQuizQuestion();
+  showView('quizView');
+}
+
+function renderQuizQuestion() {
+  if (quizIdx >= quizItems.length) { renderQuizResult(); return; }
+  const item = quizItems[quizIdx];
+  const others = shuffle(quizPool.filter(w => w.nghia !== item.nghia)).slice(0, 2);
+  const options = shuffle([item, ...others]);
+  document.getElementById('quizBody').innerHTML = `
+    <div class="quiz-progress">Câu ${quizIdx + 1}/${quizItems.length}</div>
+    <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+    <div class="quiz-word">${item.tuVung}</div>
+    <div id="optionsArea">${options.map(o => `<button class="opt" onclick="answerQuiz('${esc(o.nghia)}','${esc(item.nghia)}', this)">${o.nghia}</button>`).join('')}</div>`;
+  startQuizTimer();
+}
+function startQuizTimer() {
+  clearTimeout(quizTimer);
+  const fill = document.getElementById('timerFill');
+  fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => { fill.style.transition = `width ${TIME_PER_WORD}ms linear`; fill.style.width = '0%'; });
+  quizTimer = setTimeout(() => {
+    quizWrong.push(quizItems[quizIdx]);
+    lockQuizOptions();
+    setTimeout(nextQuizQuestion, 500);
+  }, TIME_PER_WORD);
+}
+function lockQuizOptions() { document.querySelectorAll('#optionsArea .opt').forEach(b => b.disabled = true); }
+function answerQuiz(chosen, correct, btn) {
+  clearTimeout(quizTimer);
+  const isCorrect = chosen === correct;
+  document.querySelectorAll('#optionsArea .opt').forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
+  if (isCorrect) quizCorrect++;
+  else { btn.classList.add('wrong'); quizWrong.push(quizItems[quizIdx]); }
+  lockQuizOptions();
+  setTimeout(nextQuizQuestion, 600);
+}
+function nextQuizQuestion() { quizIdx++; renderQuizQuestion(); }
+
+function renderQuizResult() {
+  const total = quizItems.length;
+  const pct = Math.round((quizCorrect / total) * 100);
+  document.getElementById('quizBody').innerHTML = `
+    <div class="quiz-result">
+      <div>Kết quả</div>
+      <div class="quiz-score">${quizCorrect}/${total} (${pct}%)</div>
+      ${quizWrong.length ? `<button class="rbtn rbtn-hint" onclick="retryWrong()">🔁 Làm lại từ đã sai (${quizWrong.length})</button>` : `<div>🎉 Làm đúng hết!</div>`}
+    </div>`;
+}
+function retryWrong() {
+  quizItems = shuffle(quizWrong);
+  quizPool = quizWrong.length >= 3 ? quizWrong : quizPool;
+  quizIdx = 0; quizCorrect = 0; quizWrong = [];
+  renderQuizQuestion();
+}
+
+loadGroups();
+</script>
+</body>
+</html>
