@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide Học Tập Tương Tác: Ngữ Pháp & Từ Vựng</title>
+    <style>
+        :root {
+            --bg-color: #0b1325;
+            --card-bg: #111b30;
+            --accent-color: #00ffcc;
+            --accent-hover: #00d4aa;
+            --text-main: #f4f6fa;
+            --text-muted: #8b9bb4;
+            --success: #2ec4b6;
+            --error: #e71d36;
+            --border-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        /* Container & Responsive Slide Layout */
+        #app-container {
+            width: 100%;
+            max-width: 500px;
+            height: 90vh;
+            max-height: 750px;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Header Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(255,255,255,0.05);
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-color), #00b4d8);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Slides container */
+        .slides-wrapper {
+            flex: 1;
+            position: relative;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .slide {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Common Elements */
+        h1, h2 {
+            font-weight: 700;
+            line-height: 1.3;
+            color: #ffffff;
+        }
+
+        h1 { font-size: 1.6rem; margin-bottom: 10px; text-align: center; color: var(--accent-color); }
+        h2 { font-size: 1.3rem; margin-bottom: 15px; border-left: 4px solid var(--accent-color); padding-left: 10px; }
+        p { font-size: 0.95rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 15px; }
+
+        /* Highlight box */
+        .highlight-box {
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px dashed var(--accent-color);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .highlight-box ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .highlight-box li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 15px;
+            color: var(--text-main);
+        }
+
+        .highlight-box li::before {
+            content: "•";
+            color: var(--accent-color);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* Code/Formula styling */
+        code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #f77f00;
+        }
+
+        /* Option Buttons */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: auto;
+            margin-bottom: 15px;
+        }
+
+        .option-btn {
+            background-color: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 14px 16px;
+            border-radius: 10px;
+            color: var(--text-main);
+            text-align: left;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: rgba(0, 255, 204, 0.05);
+            border-color: var(--accent-color);
+        }
+
+        .option-btn.correct {
+            background-color: rgba(46, 196, 182, 0.2) !important;
+            border-color: var(--success) !important;
+            color: #fff !important;
+        }
+
+        .option-btn.incorrect {
+            background-color: rgba(231, 29, 54, 0.2) !important;
+            border-color: var(--error) !important;
+            color: #fff !important;
+        }
+
+        /* Bottom Navigation */
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .nav-btn:disabled {
+            border-color: rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .nav-btn.primary-btn {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .nav-btn.primary-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .slide-counter {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Start & End Slides Special Styling */
+        .center-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+        }
+
+        .icon-banner {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Summary Slide Scrollable Content */
+        .summary-container {
+            text-align: left;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .summary-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+            font-size: 0.9rem;
+        }
+
+        .summary-section {
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .summary-title {
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .incorrect-item {
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+
+        .incorrect-item p {
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .incorrect-item .explanation {
+            font-size: 0.85rem;
+            color: #ff9f1c;
+            padding-left: 8px;
+            border-left: 2px solid #ff9f1c;
+        }
+
+        /* Custom Scrollbar for mobile/web */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Slides Wrapper -->
+    <div class="slides-wrapper" id="slidesWrapper">
+
+        <!-- SLIDE 1: WELCOME -->
+        <div class="slide active" id="slide-welcome">
+            <div class="center-content">
+                <div class="icon-banner">⚡</div>
+                <h1>Trình Chiếu Tương Tác</h1>
+                <p style="margin-top: 10px; margin-bottom: 25px;">Chuyên đề Ngữ Pháp Trọng Tâm & 35 Từ Vựng Doanh Nghiệp Chọn Lọc</p>
+                <div class="highlight-box" style="width: 100%; text-align: left;">
+                    <ul>
+                        <li><b>Lý thuyết:</b> Rút gọn, cấu trúc từ loại, liên từ cốt lõi.</li>
+                        <li><b>Trắc nghiệm lý thuyết:</b> 9 câu phản xạ nhanh.</li>
+                        <li><b>Luyện tập ngữ pháp:</b> 5 câu thực hành thực tế.</li>
+                        <li><b>Kiểm tra từ vựng:</b> Thử thách 35 từ vựng đa lựa chọn.</li>
+                    </ul>
+                </div>
+                <button class="nav-btn primary-btn" onclick="nextSlide()" style="width: 80%; justify-content: center; margin-top: 15px;">Bắt đầu học 🚀</button>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: LÝ THUYẾT 1 -->
+        <div class="slide" id="slide-lt1">
+            <h2>1. Từ Loại & Vị Trí Cốt Lõi</h2>
+            <div class="highlight-box">
+                <b>Trạng từ (adv):</b>
+                <p style="margin-top:5px; margin-bottom:5px; color:#fff;">Đứng sau tân ngữ (O) hoặc động từ (V) để bổ nghĩa cho hành động.</p>
+                <code>V + O + Adv</code> hoặc <code>V + Adv</code><br>
+                <span style="font-size:0.85rem; color: var(--accent-color)">Ví dụ: approach the subject matter <b>objectively</b>, work <b>collaboratively</b>.</span>
+            </div>
+            <div class="highlight-box">
+                <b>Tính từ (adj):</b>
+                <p style="margin-top:5px; margin-bottom:5px; color:#fff;">Đứng trước danh từ (N) bổ nghĩa để tạo thành cụm danh từ.</p>
+                <code>Adj + N</code><br>
+                <span style="font-size:0.85rem; color: var(--accent-color)">Ví dụ: a more <b>reliable</b> copy machine, <b>writing</b> style.</span>
+            </div>
+            <div class="highlight-box">
+                <b>Sở Hữu Cách (SHC):</b>
+                <p style="margin-top:5px; margin-bottom:5px; color:#fff;">Danh từ làm chủ ngữ thường đứng ngay sau Sở hữu cách.</p>
+                <code>Noun's + Noun (Subject)</code><br>
+                <span style="font-size:0.85rem; color: var(--accent-color)">Ví dụ: Mr. Brighton's first <b>assignment</b>.</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: LÝ THUYẾT 2 -->
+        <div class="slide" id="slide-lt2">
+            <h2>2. Chủ Ngữ Dài & Liên Từ / Giới Từ</h2>
+            <div class="highlight-box">
+                <b>Chủ ngữ chính trong cụm danh từ dài:</b>
+                <p style="margin-top:5px; margin-bottom:5px; color:#fff;">Khi cụm danh từ chứa giới từ, <b>danh từ đứng trước giới từ đầu tiên</b> đóng vai trò làm chủ ngữ chính.</p>
+                <code>[N1] + prep + N2 + prep + N3...</code> -> <b>N1</b> chia động từ.<br>
+                <span style="font-size:0.85rem; color: var(--accent-color)">Ví dụ: The <b>installation</b> of new benches... (installation là danh từ chính số ít).</span>
+            </div>
+            <div class="highlight-box">
+                <b>Phân biệt Giới từ và Liên từ:</b>
+                <ul style="margin-top:5px;">
+                    <li><code>Because of</code> / <code>Despite</code> + <b>Noun / V-ing</b> (Bởi vì / Mặc dù).</li>
+                    <li><code>as soon as</code> / <code>in case</code> / <code>in order that</code> + <b>Mệnh đề (S + V)</b>.</li>
+                    <li><code>rather than</code>: thay vì (nối 2 từ loại tương đương nhau).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: LÝ THUYẾT 3 -->
+        <div class="slide" id="slide-lt3">
+            <h2>3. Cấu Trúc Lưu Ý Khác</h2>
+            <div class="highlight-box">
+                <b>Almost:</b>
+                <p style="margin-top:5px; margin-bottom:5px; color:#fff;">Thường đi với <b>một con số</b> hoặc <b>động từ chỉ quá trình</b> (như complete).</p>
+                <span style="font-size:0.85rem; color: var(--accent-color)">Ví dụ: <b>Almost 4,000</b> employees, <b>almost completed</b>.</span>
+            </div>
+            <div class="highlight-box">
+                <b>Đại từ chỉ định "That" làm Tân ngữ:</b>
+                <p style="margin-top:5px; margin-bottom:5px; color:#fff;">Có thể mở ra một mệnh đề danh ngữ làm tân ngữ cho động từ đi trước nó.</p>
+                <code>S + V (reveal, show, say...) + THAT + S + V</code><br>
+                <span style="font-size:0.85rem; color: var(--accent-color)">Ví dụ: The CEO <b>revealed</b> today <b>that she is</b> step down.</span>
+            </div>
+        </div>
+
+        <!-- QUES_THEORY: Questions will be generated dynamically -->
+        <!-- QUES_GRAMMAR: Questions will be generated dynamically -->
+        <!-- QUES_VOCAB: Questions will be generated dynamically -->
+
+        <!-- FINAL SLIDE: SUMMARY -->
+        <div class="slide" id="slide-summary">
+            <div class="summary-container">
+                <h1 style="color:var(--accent-color);">Kết Quả Hoàn Thành 🎉</h1>
+                
+                <div class="summary-scroll">
+                    <!-- Grammar Theory Section -->
+                    <div class="summary-section">
+                        <div class="summary-title">
+                            <span>Lý thuyết Ngữ pháp</span>
+                            <span id="score-theory">0/9</span>
+                        </div>
+                        <div id="incorrect-theory-list">
+                            <!-- JS dynamic items -->
+                        </div>
+                    </div>
+
+                    <!-- Grammar Practice Section -->
+                    <div class="summary-section">
+                        <div class="summary-title">
+                            <span>Bài tập Ngữ pháp</span>
+                            <span id="score-grammar">0/5</span>
+                        </div>
+                        <div id="incorrect-grammar-list">
+                            <!-- JS dynamic items -->
+                        </div>
+                    </div>
+
+                    <!-- Vocab Section -->
+                    <div class="summary-section">
+                        <div class="summary-title">
+                            <span>Bài tập Từ vựng</span>
+                            <span id="score-vocab">0/35</span>
+                        </div>
+                        <div id="incorrect-vocab-list">
+                            <!-- JS dynamic items -->
+                        </div>
+                    </div>
+                </div>
+
+                <button class="nav-btn primary-btn" onclick="resetQuiz()" style="width:100%; justify-content:center;">Làm lại từ đầu 🔄</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation Footer Controls -->
+    <div class="nav-controls" id="navControls">
+        <button class="nav-btn" id="prevBtn" onclick="prevSlide()">◀ Trước</button>
+        <span class="slide-counter" id="slideCounter">Slide 1</span>
+        <button class="nav-btn" id="nextBtn" onclick="nextSlide()">Sau ▶</button>
+    </div>
+</div>
+
+<script>
+// JSON Vocab Data from Python backend
+const vocabData = [{"word": "Criteria", "correct": "tiêu chuẩn, quy chuẩn", "distractors": ["nghĩa vụ", "giấy phép", "nhà ga", "quan điểm"]}, {"word": "lead", "correct": "trưởng", "distractors": ["cá nhân", "thành viên", "khách hàng", "nhân viên"]}, {"word": "Leading", "correct": "hàng đầu", "distractors": ["cuối cùng", "nội bộ", "cực kì phù hợp", "bị động"]}, {"word": "Brand’s identity", "correct": "nhận diện thương hiệu", "distractors": ["đơn đăng kí", "giấy phép", "sự tân trang", "mục tiêu chung"]}, {"word": "Appeal", "correct": "hấp dẫn", "distractors": ["làm phiền", "do dự", "thắc mắc", "hủy bỏ"]}, {"word": "Hesitate", "correct": "do dự", "distractors": ["nâng cấp", "cấp phát", "tạo ra", "quyết định"]}, {"word": "Common goal", "correct": "mục tiêu chung", "distractors": ["nghĩa vụ riêng", "quan điểm cá nhân", "bản sắc thương hiệu", "nhà ga mới"]}, {"word": "Rather than", "correct": "thay vì", "distractors": ["bởi vì", "mặc dù", "ngay khi", "để mà"]}, {"word": "Individual", "correct": "cá nhân", "distractors": ["phòng ban", "tập thể", "cấp trên", "đối tác"]}, {"word": "Inquire", "correct": "thắc mắc, yêu cầu", "distractors": ["hoàn tiền", "tân trang", "tránh xa", "chấp nhận"]}, {"word": "Yield", "correct": "tạo ra", "distractors": ["do dự", "bỏ qua", "làm phiền", "giảm bớt"]}, {"word": "Expert", "correct": "chuyên gia", "distractors": ["người học việc", "khách hàng", "cấp trên", "đối tác"]}, {"word": "Financial", "correct": "tài chính", "distractors": ["kỹ thuật", "thương hiệu", "vận chuyển", "nhà ga"]}, {"word": "Perspective", "correct": "quan điểm, góc nhìn", "distractors": ["tiêu chuẩn", "đơn đăng kí", "nghĩa vụ", "đường băng"]}, {"word": "Distract", "correct": "làm phiền", "distractors": ["nâng cấp", "hấp dẫn", "giúp đỡ", "động viên"]}, {"word": "Remodel", "correct": "tân trang", "distractors": ["phá hủy", "giữ nguyên", "nhập khẩu", "vận chuyển"]}, {"word": "Update", "correct": "nâng cấp", "distractors": ["làm cũ", "trì hoãn", "thất bại", "bán đi"]}, {"word": "Modernization", "correct": "tự động hóa (hiện đại hóa)", "distractors": ["thủ công hóa", "đơn giản hóa", "vận chuyển", "giấy phép"]}, {"word": "Division", "correct": "phòng ban", "distractors": ["cá nhân", "cấp trên", "nhà ga", "đường băng"]}, {"word": "Obligation", "correct": "nghĩa vụ", "distractors": ["quyền lợi", "sở thích", "do dự", "quà tặng"]}, {"word": "Particularly well suit", "correct": "cực kì phù hợp", "distractors": ["không tương thích", "hơi do dự", "bị từ chối", "tạm thời"]}, {"word": "In-house", "correct": "nội bộ", "distractors": ["bên ngoài", "quốc tế", "công cộng", "nhà ga"]}, {"word": "Unable", "correct": "không thể", "distractors": ["có thể", "đồng ý", "do dự", "bắt buộc"]}, {"word": "Loyal customer", "correct": "khách hàng thân thiết", "distractors": ["khách vãng lai", "đối thủ", "nhà cung cấp", "cấp trên"]}, {"word": "Application", "correct": "đơn đăng kí", "distractors": ["giấy phép", "nhận diện", "hợp đồng", "thắc mắc"]}, {"word": "Promotional", "correct": "quảng bá, khuyến mãi", "distractors": ["bắt buộc", "nội bộ", "bị cấm", "hình phạt"]}, {"word": "Supervisor", "correct": "cấp trên", "distractors": ["nhân viên", "khách hàng", "cá nhân", "đối tác"]}, {"word": "Permit", "correct": "giấy phép", "distractors": ["thuế", "đơn đăng kí", "bản báo cáo", "nhà ga"]}, {"word": "Grant", "correct": "cấp", "distractors": ["thu hồi", "từ chối", "yêu cầu", "do dự"]}, {"word": "Repayment", "correct": "hoàn tiền", "distractors": ["đóng thuế", "tiền phạt", "đặt cọc", "đầu tư"]}, {"word": "Transfer", "correct": "chuyển", "distractors": ["giữ lại", "hủy bỏ", "nâng cấp", "tân trang"]}, {"word": "Refine", "correct": "nâng cấp, tinh chỉnh", "distractors": ["làm hỏng", "bỏ qua", "giảm bớt", "trì hoãn"]}, {"word": "Process", "correct": "quy trình", "distractors": ["nhà ga", "đường băng", "tiêu chuẩn", "kết quả"]}, {"word": "Terminal", "correct": "nhà ga", "distractors": ["đường băng", "phòng ban", "văn phòng", "khách sạn"]}, {"word": "Runway", "correct": "đường băng", "distractors": ["nhà ga", "văn phòng", "cửa khởi hành", "phòng chờ"]}];
+
+// Theory questions data
+const theoryQuestions = [
+    {
+        q: "Trạng từ (adv) có thể đứng ở vị trí nào để bổ nghĩa cho hành động?",
+        options: [
+            "Đứng sau danh từ chính của câu làm chủ ngữ",
+            "Đứng sau tân ngữ (O) hoặc động từ (V) bổ nghĩa cho hành động đó",
+            "Đứng trước tính từ để tạo thành cụm danh từ",
+            "Đứng ngay sau sở hữu cách"
+        ],
+        correct: 1
+    },
+    {
+        q: "Vị trí của tính từ (adj) khi bổ nghĩa cho danh từ là gì?",
+        options: [
+            "Đứng sau danh từ chính",
+            "Đứng trước danh từ (N) bổ nghĩa tạo thành cụm danh từ",
+            "Đứng sau giới từ đầu tiên",
+            "Đứng sau sở hữu cách"
+        ],
+        correct: 1
+    },
+    {
+        q: "Danh từ làm chủ ngữ thường đứng ngay sau thành phần nào?",
+        options: [
+            "Trạng từ chỉ tần suất",
+            "Sở hữu cách (SHC)",
+            "Động từ chính",
+            "Liên từ phụ thuộc"
+        ],
+        correct: 1
+    },
+    {
+        q: "Trong cụm danh từ dài chứa giới từ, danh từ nào là danh từ chính làm chủ ngữ?",
+        options: [
+            "Danh từ đứng trước giới từ đầu tiên",
+            "Danh từ đứng cuối cùng của cụm",
+            "Danh từ đứng ngay sau giới từ đầu tiên",
+            "Không có danh từ chính"
+        ],
+        correct: 0
+    },
+    {
+        q: "Cấu trúc 'Because of' đi với thành phần nào sau nó?",
+        options: [
+            "Mệnh đề (S + V)",
+            "Noun / Noun phrase / V-ing",
+            "Một động từ nguyên mẫu",
+            "Một liên từ tương đương"
+        ],
+        correct: 1
+    },
+    {
+        q: "Các liên từ 'as soon as', 'in case', 'in order that' đi kèm với cái gì?",
+        options: [
+            "Chỉ đi với Danh từ (Noun)",
+            "Chỉ đi với V-ing",
+            "Mệnh đề (S + Vc)",
+            "Một cụm giới từ"
+        ],
+        correct: 2
+    },
+    {
+        q: "Liên từ 'rather than' thường dùng để làm gì?",
+        options: [
+            "Nối 2 từ loại tương đương nhau (thay vì)",
+            "Đi kèm với mệnh đề chỉ lý do",
+            "Thay thế cho giới từ 'despite'",
+            "Nối hai mệnh đề có nghĩa tương phản hoàn toàn"
+        ],
+        correct: 0
+    },
+    {
+        q: "Cấu trúc 'despite' đi với thành phần nào?",
+        options: [
+            "Mệnh đề (S + V)",
+            "V-ing / Noun / Noun Phrase",
+            "Động từ nguyên mẫu có to",
+            "Một trạng từ chỉ thời gian"
+        ],
+        correct: 1
+    },
+    {
+        q: "Từ 'Almost' thường đi với thành phần nào để chỉ mức độ/quá trình?",
+        options: [
+            "Một con số hoặc một động từ chỉ quá trình (như complete)",
+            "Một danh từ chỉ người",
+            "Một trạng từ chỉ nơi chốn",
+            "Sở hữu cách"
+        ],
+        correct: 0
+    }
+];
+
+// Grammar practice questions
+const grammarPractice = [
+    {
+        q: "We determined to approach the complicated technical subject matter _______.",
+        options: ["objectively", "objective", "object", "objectivity"],
+        correct: 0,
+        exp: "Vị trí này cần một trạng từ (objectively) để bổ nghĩa cho động từ 'approach' đứng trước tân ngữ 'subject matter'."
+    },
+    {
+        q: "Mr. Brighton's first _______ was to reorganize the team structure.",
+        options: ["assignment", "assign", "assigned", "assignee"],
+        correct: 0,
+        exp: "Sau Sở hữu cách (Mr. Brighton's) và tính từ (first) cần một Danh từ đóng vai trò làm chủ ngữ chính (assignment)."
+    },
+    {
+        q: "The installation of new benches in the main terminals _______ completed last Monday.",
+        options: ["was", "were", "are", "been"],
+        correct: 0,
+        exp: "Chủ ngữ chính là danh từ đứng trước giới từ đầu tiên 'installation' (số ít), do đó động từ chia số ít 'was completed'."
+    },
+    {
+        q: "The flight was delayed _______ a technical failure in the runway system.",
+        options: ["because of", "because", "in case", "as soon as"],
+        correct: 0,
+        exp: "Phía sau là cụm danh từ 'a technical failure...' nên cần dùng giới từ 'because of'."
+    },
+    {
+        q: "_______ being relatively new to the department, she led the brand's identity project successfully.",
+        options: ["Despite", "Although", "In order that", "Rather than"],
+        correct: 0,
+        exp: "Phía sau là cụm 'being relatively new...' (V-ing) chỉ sự nhượng bộ, dùng giới từ 'Despite'."
+    }
+];
+
+// State management
+let currentSlideIndex = 0;
+let totalSlides = 0;
+let userAnswers = {}; // Store {slideId: {selectedIdx, isCorrect}}
+
+// Generate all dynamic questions and slides on load
+function initQuiz() {
+    const wrapper = document.getElementById('slidesWrapper');
+    
+    // 1. Generate Theory Slides
+    theoryQuestions.forEach((item, idx) => {
+        const slideId = `theory-${idx}`;
+        const slideHtml = `
+            <div class="slide" id="${slideId}">
+                <h2>Trắc Nghiệm Lý Thuyết (${idx+1}/9)</h2>
+                <p style="font-weight:600; color:#fff; font-size: 1.05rem; margin-bottom: 20px;">${item.q}</p>
+                <div class="options-list">
+                    ${item.options.map((opt, oIdx) => `
+                        <button class="option-btn" onclick="selectOption('${slideId}', ${oIdx}, ${item.correct})">${opt}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        wrapper.insertAdjacentHTML('beforeend', slideHtml);
+    });
+
+    // 2. Generate Grammar Practice Slides
+    grammarPractice.forEach((item, idx) => {
+        const slideId = `grammar-${idx}`;
+        const slideHtml = `
+            <div class="slide" id="${slideId}">
+                <h2>Bài Tập Thực Hành Ngữ Pháp (${idx+1}/5)</h2>
+                <p style="font-weight:600; color:#fff; font-size: 1.05rem; margin-bottom: 20px;">${item.q}</p>
+                <div class="options-list">
+                    ${item.options.map((opt, oIdx) => `
+                        <button class="option-btn" onclick="selectOption('${slideId}', ${oIdx}, ${item.correct})">${opt}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        wrapper.insertAdjacentHTML('beforeend', slideHtml);
+    });
+
+    // 3. Generate Vocab Slides (Shuffle distractors first)
+    vocabData.forEach((item, idx) => {
+        const slideId = `vocab-${idx}`;
+        
+        // Put correct and distractors into one array and shuffle
+        const options = [item.correct, ...item.distractors];
+        const shuffledOptions = shuffleArray([...options]);
+        const correctIdx = shuffledOptions.indexOf(item.correct);
+
+        const slideHtml = `
+            <div class="slide" id="${slideId}">
+                <h2>Trắc Nghiệm Từ Vựng (${idx+1}/35)</h2>
+                <p style="font-size: 0.9rem; color:var(--text-muted); margin-bottom:5px;">Nghĩa của từ vựng sau là gì?</p>
+                <p style="font-size: 1.8rem; font-weight:700; color:var(--accent-color); text-align:center; margin: 20px 0;">${item.word}</p>
+                <div class="options-list">
+                    ${shuffledOptions.map((opt, oIdx) => `
+                        <button class="option-btn" onclick="selectOption('${slideId}', ${oIdx}, ${correctIdx}, '${item.word}', '${item.correct}')">${opt}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        wrapper.insertAdjacentHTML('beforeend', slideHtml);
+    });
+
+    // Put summary slide at the end of stack
+    const summarySlide = document.getElementById('slide-summary');
+    wrapper.appendChild(summarySlide);
+
+    updateSlideTracker();
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// Handle Option Selection
+function selectOption(slideId, selectedIdx, correctIdx, vocabWord = '', vocabCorrect = '') {
+    if (userAnswers[slideId]) return; // Block re-selection
+
+    const slideEl = document.getElementById(slideId);
+    const buttons = slideEl.querySelectorAll('.option-btn');
+    const isCorrect = selectedIdx === correctIdx;
+
+    userAnswers[slideId] = {
+        selectedIdx: selectedIdx,
+        correctIdx: correctIdx,
+        isCorrect: isCorrect,
+        vocabWord: vocabWord,
+        vocabCorrect: vocabCorrect,
+        optionsText: Array.from(buttons).map(b => b.textContent)
+    };
+
+    // Color feedback
+    buttons[selectedIdx].classList.add(isCorrect ? 'correct' : 'incorrect');
+    buttons[correctIdx].classList.add('correct');
+
+    // Autoplay next slide slightly after selection for slick experience
+    setTimeout(() => {
+        nextSlide();
+    }, 800);
+}
+
+// Controls
+function updateSlideTracker() {
+    const slides = document.querySelectorAll('.slide');
+    totalSlides = slides.length;
+    
+    // Progress
+    const progressPercent = (currentSlideIndex / (totalSlides - 1)) * 100;
+    document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+    // Counters
+    const counterEl = document.getElementById('slideCounter');
+    if (currentSlideIndex === 0) {
+        counterEl.textContent = "Bắt đầu";
+    } else if (currentSlideIndex === totalSlides - 1) {
+        counterEl.textContent = "Hoàn thành";
+    } else {
+        counterEl.textContent = `Slide ${currentSlideIndex} / ${totalSlides - 2}`;
+    }
+
+    // Disable/enable Prev button
+    document.getElementById('prevBtn').disabled = currentSlideIndex === 0;
+    
+    // If last slide, hide next button
+    if (currentSlideIndex === totalSlides - 1) {
+        document.getElementById('nextBtn').style.visibility = 'hidden';
+        renderSummary();
+    } else {
+        document.getElementById('nextBtn').style.visibility = 'visible';
+    }
+}
+
+function showSlide(index) {
+    const slides = document.querySelectorAll('.slide');
+    slides.forEach(s => s.classList.remove('active'));
+    slides[index].classList.add('active');
+    
+    // Scroll content wrapper to top
+    document.getElementById('slidesWrapper').scrollTop = 0;
+    
+    currentSlideIndex = index;
+    updateSlideTracker();
+}
+
+function nextSlide() {
+    if (currentSlideIndex < totalSlides - 1) {
+        showSlide(currentSlideIndex + 1);
+    }
+}
+
+function prevSlide() {
+    if (currentSlideIndex > 0) {
+        showSlide(currentSlideIndex - 1);
+    }
+}
+
+// Generate the final scores and dynamic report card
+function renderSummary() {
+    let correctTheory = 0, totalTheory = theoryQuestions.length;
+    let correctGrammar = 0, totalGrammar = grammarPractice.length;
+    let correctVocab = 0, totalVocab = vocabData.length;
+
+    const listTheoryEl = document.getElementById('incorrect-theory-list');
+    const listGrammarEl = document.getElementById('incorrect-grammar-list');
+    const listVocabEl = document.getElementById('incorrect-vocab-list');
+
+    listTheoryEl.innerHTML = '';
+    listGrammarEl.innerHTML = '';
+    listVocabEl.innerHTML = '';
+
+    // Calculate Theory
+    theoryQuestions.forEach((item, idx) => {
+        const ans = userAnswers[`theory-${idx}`];
+        if (ans) {
+            if (ans.isCorrect) correctTheory++;
+            else {
+                listTheoryEl.innerHTML += `
+                    <div class="incorrect-item">
+                        <p><b>Câu ${idx+1}:</b> ${item.q}</p>
+                        <p style="color:var(--error)">✘ Bạn chọn: ${ans.optionsText[ans.selectedIdx]}</p>
+                        <p style="color:var(--success)">✔ Đáp án đúng: ${ans.optionsText[ans.correctIdx]}</p>
+                    </div>
+                `;
+            }
+        } else {
+            // Unanswered
+            listTheoryEl.innerHTML += `
+                <div class="incorrect-item">
+                    <p><b>Câu ${idx+1}:</b> ${item.q}</p>
+                    <p style="color:var(--text-muted)">- Chưa trả lời (Đáp án đúng: ${item.options[item.correct]})</p>
+                </div>
+            `;
+        }
+    });
+
+    // Calculate Grammar Practice
+    grammarPractice.forEach((item, idx) => {
+        const ans = userAnswers[`grammar-${idx}`];
+        if (ans) {
+            if (ans.isCorrect) correctGrammar++;
+            
+            // Show all explanations for practice questions to comply with detail instructions
+            listGrammarEl.innerHTML += `
+                <div class="incorrect-item">
+                    <p><b>Câu ${idx+1}:</b> ${item.q}</p>
+                    <p style="color: ${ans.isCorrect ? 'var(--success)' : 'var(--error)'}">
+                        ${ans.isCorrect ? '✔ Bạn trả lời đúng' : '✘ Bạn chọn: ' + ans.optionsText[ans.selectedIdx]}
+                    </p>
+                    ${!ans.isCorrect ? `<p style="color:var(--success)">✔ Đáp án đúng: ${ans.optionsText[ans.correctIdx]}</p>` : ''}
+                    <div class="explanation"><b>Giải thích:</b> ${item.exp}</div>
+                </div>
+            `;
+        } else {
+            listGrammarEl.innerHTML += `
+                <div class="incorrect-item">
+                    <p><b>Câu ${idx+1}:</b> ${item.q}</p>
+                    <p style="color:var(--text-muted)">- Chưa trả lời</p>
+                    <div class="explanation"><b>Giải thích:</b> ${item.exp}</div>
+                </div>
+            `;
+        }
+    });
+
+    // Calculate Vocab
+    let incorrectVocabs = [];
+    vocabData.forEach((item, idx) => {
+        const ans = userAnswers[`vocab-${idx}`];
+        if (ans) {
+            if (ans.isCorrect) correctVocab++;
+            else {
+                incorrectVocabs.push(`${item.word}: ${item.correct}`);
+            }
+        } else {
+            incorrectVocabs.push(`${item.word}: ${item.correct} (Chưa làm)`);
+        }
+    });
+
+    if (incorrectVocabs.length > 0) {
+        listVocabEl.innerHTML = `
+            <p style="color:var(--text-muted); margin-bottom: 8px;">Danh sách các từ vựng bạn đã làm sai / bỏ qua:</p>
+            <div class="highlight-box" style="background:rgba(231,29,54,0.03); border-color: rgba(231,29,54,0.2);">
+                <ul style="padding-left:15px; color:var(--text-main);">
+                    ${incorrectVocabs.map(v => `<li>${v}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    } else {
+        listVocabEl.innerHTML = `<p style="color:var(--success)">🎉 Tuyệt vời! Bạn đã trả lời đúng toàn bộ 35 từ vựng!</p>`;
+    }
+
+    // Update Score headers
+    document.getElementById('score-theory').textContent = `${correctTheory}/${totalTheory}`;
+    document.getElementById('score-grammar').textContent = `${correctGrammar}/${totalGrammar}`;
+    document.getElementById('score-vocab').textContent = `${correctVocab}/${totalVocab}`;
+}
+
+function resetQuiz() {
+    userAnswers = {};
+    const buttons = document.querySelectorAll('.option-btn');
+    buttons.forEach(b => {
+        b.classList.remove('correct', 'incorrect');
+    });
+    showSlide(0);
+}
+
+// On load
+window.onload = initQuiz;
+</script>
+</body>
+</html>
