@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lý thuyết và Bài tập: Danh từ & Cụm danh từ</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #16a34a;
+            --error: #dc2626;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 30px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1.course-title {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-top: 0;
+        }
+
+        .slide {
+            display: none;
+            flex-grow: 1;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        /* Theory Styles */
+        .theory-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        .theory-content ul { padding-left: 20px; }
+        .theory-content li { margin-bottom: 10px; }
+        .highlight { font-weight: bold; color: var(--primary-color); }
+
+        /* Question Styles */
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        .options-grid {
+            display: grid;
+            gap: 10px;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-label:hover {
+            background-color: #f1f5f9;
+        }
+        .option-label input { margin-right: 10px; }
+        
+        /* Dual Layout for Practice */
+        .dual-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 768px) {
+            .dual-layout { grid-template-columns: 1fr; }
+        }
+
+        /* Navigation */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-prev { background: #cbd5e1; color: #334155; }
+        .btn-prev:hover { background: #94a3b8; }
+        .btn-next { background: var(--primary-color); color: white; }
+        .btn-next:hover { background: var(--primary-hover); }
+        .btn-submit { background: var(--success); color: white; display: none; }
+        .btn-submit:hover { background: #15803d; }
+
+        /* Progress */
+        .progress-indicator {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        /* Results */
+        .result-container { display: none; }
+        .result-item {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .result-item.correct { border-left: 5px solid var(--success); }
+        .result-item.incorrect { border-left: 5px solid var(--error); }
+        .explanation {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e0f2fe;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            color: #0c4a6e;
+        }
+        .score-board {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="course-title">Chuyên đề: Danh từ & Cụm danh từ</h1>
+
+    <div id="slides-container">
+        <!-- Slides sẽ được render bằng JavaScript -->
+    </div>
+
+    <div id="results-container" class="result-container">
+        <!-- Kết quả sẽ hiển thị ở đây -->
+    </div>
+
+    <div class="progress-indicator" id="progress-text"></div>
+
+    <div class="navigation">
+        <button class="btn btn-prev" id="btn-prev" onclick="prevSlide()">❮ Quay lại</button>
+        <button class="btn btn-next" id="btn-next" onclick="nextSlide()">Tiếp theo ❯</button>
+        <button class="btn btn-submit" id="btn-submit" onclick="submitTest()">Hoàn thành & Xem giải thích</button>
+    </div>
+</div>
+
+<script>
+    // DỮ LIỆU BÀI HỌC
+    const slidesData = [
+        // --- LÝ THUYẾT ---
+        {
+            type: "theory",
+            title: "1. Vị trí của Danh từ trong câu",
+            content: `
+                <div class="theory-content">
+                    <p>Danh từ (Noun) thường đứng ở các vị trí cốt lõi sau để hình thành cấu trúc câu hoàn chỉnh:</p>
+                    <ul>
+                        <li><span class="highlight">Chủ ngữ (Subject):</span> Đứng đầu câu, trước động từ chính.<br>Ví dụ: <i>The <b>manager</b> approved the proposal.</i></li>
+                        <li><span class="highlight">Tân ngữ (Object):</span> Đứng sau động từ tác động.<br>Ví dụ: <i>She is reading a <b>document</b>.</i></li>
+                        <li><span class="highlight">Sau Giới từ (Preposition):</span> in, on, at, about, for, with...<br>Ví dụ: <i>We are interested in this <b>project</b>.</i></li>
+                        <li><span class="highlight">Sau Mạo từ & Từ chỉ định:</span> a, an, the, this, that, these, those...</li>
+                        <li><span class="highlight">Sau Tính từ sở hữu:</span> my, your, his, her, their, our, its...</li>
+                    </ul>
+                </div>`
+        },
+        {
+            type: "theory",
+            title: "2. Các Hậu tố (Đuôi) Danh từ phổ biến",
+            content: `
+                <div class="theory-content">
+                    <p>Nhận diện danh từ nhanh chóng qua các đuôi phổ biến trong bài thi TOEIC:</p>
+                    <ul>
+                        <li><span class="highlight">Danh từ chỉ vật/sự việc:</span> 
+                            <br>-tion / -sion (information, decision)
+                            <br>-ment (development, investment)
+                            <br>-ness (awareness, business)
+                            <br>-ity (quality, security)
+                            <br>-ance / -ence (importance, difference)
+                        </li>
+                        <li><span class="highlight">Danh từ chỉ người:</span>
+                            <br>-er / -or (manager, director)
+                            <br>-ee (employee, trainee)
+                            <br>-ant (assistant, applicant)
+                        </li>
+                    </ul>
+                </div>`
+        },
+        // --- TRẮC NGHIỆM LÝ THUYẾT (Hỏi nhỏ, 7 câu, 7 slide) ---
+        { type: "quiz", qId: "t1", title: "Trắc nghiệm Lý thuyết (1/7)", question: "Từ nào sau đây có đuôi là Danh từ chỉ người?", options: ["A. employment", "B. employer", "C. employ", "D. employable"], answer: 1, exp: "Đuôi '-er' (employer) là đuôi danh từ chỉ người. '-ment' là sự việc, '-able' là tính từ." },
+        { type: "quiz", qId: "t2", title: "Trắc nghiệm Lý thuyết (2/7)", question: "Sau giới từ 'about', chúng ta cần sử dụng loại từ nào?", options: ["A. Động từ nguyên thể", "B. Tính từ", "C. Danh từ / V-ing", "D. Trạng từ"], answer: 2, exp: "Sau giới từ luôn luôn là một Danh từ, Cụm danh từ hoặc V-ing." },
+        { type: "quiz", qId: "t3", title: "Trắc nghiệm Lý thuyết (3/7)", question: "Trong cụm 'a successful ______', từ cần điền phải là:", options: ["A. Danh từ", "B. Trạng từ", "C. Động từ", "D. Liên từ"], answer: 0, exp: "Sau mạo từ 'a' và tính từ 'successful' bắt buộc phải là một Danh từ để tạo thành cụm danh từ." },
+        { type: "quiz", qId: "t4", title: "Trắc nghiệm Lý thuyết (4/7)", question: "Từ 'approval' thuộc loại từ gì?", options: ["A. Tính từ", "B. Danh từ", "C. Trạng từ", "D. Động từ"], answer: 1, exp: "Mặc dù có đuôi '-al' thường thấy ở tính từ, 'approval' (sự phê duyệt) là một Danh từ đặc biệt rất phổ biến." },
+        { type: "quiz", qId: "t5", title: "Trắc nghiệm Lý thuyết (5/7)", question: "Đuôi nào sau đây KHÔNG phải là đuôi danh từ phổ biến?", options: ["A. -tion", "B. -ment", "C. -ify", "D. -ness"], answer: 2, exp: "Đuôi '-ify' (ví dụ: identify, notify) là hậu tố cấu tạo Động từ, không phải Danh từ." },
+        { type: "quiz", qId: "t6", title: "Trắc nghiệm Lý thuyết (6/7)", question: "Trong câu '___ depends on the weather', vị trí trống đóng vai trò gì?", options: ["A. Tân ngữ", "B. Chủ ngữ", "C. Động từ", "D. Bổ ngữ"], answer: 1, exp: "Vị trí đứng đầu câu, trước động từ chính 'depends' chính là Chủ ngữ (Subject)." },
+        { type: "quiz", qId: "t7", title: "Trắc nghiệm Lý thuyết (7/7)", question: "Từ 'trainee' mang ý nghĩa là:", options: ["A. Người đào tạo", "B. Quá trình đào tạo", "C. Người được đào tạo", "D. Máy móc đào tạo"], answer: 2, exp: "Đuôi '-ee' chỉ người bị tác động / người nhận hành động. Trainee = người được đào tạo (thực tập sinh)." },
+        
+        // --- BÀI TẬP THỰC HÀNH (14 CÂU - 7 SLIDE, 2 CÂU/SLIDE) ---
+        {
+            type: "practice_dual", title: "Bài tập Thực hành (1-2 / 14)",
+            q1: { qId: "p1", question: "1. The HR department offered a generous ________ package to attract top talent.", options: ["A. perk", "B. benefit", "C. bonus", "D. reward"], answer: 1, exp: "Benefit package là phúc lợi cốt lõi (bảo hiểm, lương hưu). Perk mang tính chất đặc quyền phụ trợ (đồ ăn, gym)." },
+            q2: { qId: "p2", question: "2. Flexible working hours are considered a major ________ of working at this tech startup.", options: ["A. perk", "B. benefit", "C. allowance", "D. subsidy"], answer: 0, exp: "Giờ làm linh hoạt là một ưu đãi gia tăng sự thoải mái (perk), không phải chính sách phúc lợi cốt lõi (benefit)." }
+        },
+        {
+            type: "practice_dual", title: "Bài tập Thực hành (3-4 / 14)",
+            q1: { qId: "p3", question: "3. The board requires ________ evidence of the market's growth potential.", options: ["A. abundant", "B. ample", "C. luxurious", "D. excessive"], answer: 1, exp: "Ample evidence: Bằng chứng đầy đủ/vừa đủ sức thuyết phục. Abundant thường dùng cho tài nguyên thiên nhiên." },
+            q2: { qId: "p4", question: "4. The region is known for its ________ natural resources.", options: ["A. ample", "B. abundant", "C. crowded", "D. sufficient"], answer: 1, exp: "Abundant natural resources: Tài nguyên thiên nhiên dồi dào, trù phú." }
+        },
+        {
+            type: "practice_dual", title: "Bài tập Thực hành (5-6 / 14)",
+            q1: { qId: "p5", question: "5. The manager pointed out that we ________ update the software immediately to prevent breaches.", options: ["A. should", "B. had better", "C. would", "D. ought"], answer: 1, exp: "'Had better' khuyên bảo cấp bách, có hậu quả tiêu cực nếu không làm (ngăn chặn rò rỉ bảo mật)." },
+            q2: { qId: "p6", question: "6. Please review the attached document; we need to ________ the proposal by Friday.", options: ["A. implement", "B. finalize", "C. initial", "D. postpone"], answer: 1, exp: "Finalize: Hoàn thiện, chốt phương án cuối cùng (chốt đề xuất trước thứ Sáu)." }
+        },
+        {
+            type: "practice_dual", title: "Bài tập Thực hành (7-8 / 14)",
+            q1: { qId: "p7", question: "7. The system failure was caused by a ________ error in the database.", options: ["A. critical", "B. minor", "C. trivial", "D. marginal"], answer: 0, exp: "Critical error: Lỗi nghiêm trọng (gây sập hệ thống). Minor/trivial mang nghĩa lỗi nhỏ." },
+            q2: { qId: "p8", question: "8. The supervisor will ________ the new trainees during their first week.", options: ["A. overlook", "B. oversee", "C. overcome", "D. overtake"], answer: 1, exp: "Oversee: Giám sát, quản lý công việc. Overlook là bỏ sót/nhìn qua." }
+        },
+        {
+            type: "practice_dual", title: "Bài tập Thực hành (9-10 / 14)",
+            q1: { qId: "p9", question: "9. The board will meet to discuss the proposed ________ to the company bylaws.", options: ["A. amendment", "B. amended", "C. amending", "D. amend"], answer: 0, exp: "Cần Danh từ đứng sau tính từ 'proposed'. Amendment: sự sửa đổi." },
+            q2: { qId: "p10", question: "10. Mr. Henderson was recommended because of his ________ experience in corporate law.", options: ["A. extensive", "B. extension", "C. extensively", "D. extend"], answer: 0, exp: "Cần Tính từ đứng trước bổ nghĩa cho danh từ 'experience'. Extensive experience: Kinh nghiệm sâu rộng." }
+        },
+        {
+            type: "practice_dual", title: "Bài tập Thực hành (11-12 / 14)",
+            q1: { qId: "p11", question: "11. All employees are required to obtain written ________ from their supervisor.", options: ["A. approval", "B. approve", "C. approved", "D. approvingly"], answer: 0, exp: "Cần Danh từ đứng sau tính từ 'written'. Approval (sự phê duyệt) là danh từ đặc biệt." },
+            q2: { qId: "p12", question: "12. The marketing team is developing a strategy to reach a broader ________ base.", options: ["A. customer", "B. customary", "C. customize", "D. custom"], answer: 0, exp: "Customer base: Cụm danh từ ghép mang nghĩa 'tệp khách hàng'." }
+        },
+        {
+            type: "practice_dual", title: "Bài tập Thực hành (13-14 / 14)",
+            q1: { qId: "p13", question: "13. Our overseas sales have grown ________ over the past six months.", options: ["A. significantly", "B. significant", "C. significance", "D. signify"], answer: 0, exp: "Cần Trạng từ bổ nghĩa cho động từ 'have grown'. Significantly: một cách đáng kể." },
+            q2: { qId: "p14", question: "14. The main elevator will be temporarily ________ until tomorrow morning.", options: ["A. unavailable", "B. unavailability", "C. unavailably", "D. avail"], answer: 0, exp: "Cần Tính từ làm vị ngữ sau to be 'will be' và trạng từ 'temporarily'. Unavailable: không hoạt động." }
+        }
+    ];
+
+    let currentSlide = 0;
+    const userAnswers = {};
+    const allQuestions = []; // Lưu trữ phẳng để chấm điểm
+
+    // Trích xuất tất cả câu hỏi để dễ chấm điểm
+    slidesData.forEach(slide => {
+        if (slide.type === "quiz") {
+            allQuestions.push(slide);
+        } else if (slide.type === "practice_dual") {
+            allQuestions.push(slide.q1, slide.q2);
+        }
+    });
+
+    function init() {
+        const container = document.getElementById("slides-container");
+        let html = "";
+
+        slidesData.forEach((slide, index) => {
+            html += `<div class="slide" id="slide-${index}">
+                        <h2 class="slide-title">${slide.title}</h2>`;
+            
+            if (slide.type === "theory") {
+                html += slide.content;
+            } 
+            else if (slide.type === "quiz") {
+                html += renderQuestionHTML(slide);
+            } 
+            else if (slide.type === "practice_dual") {
+                html += `<div class="dual-layout">
+                            <div class="question-block">${renderQuestionHTML(slide.q1)}</div>
+                            <div class="question-block">${renderQuestionHTML(slide.q2)}</div>
+                         </div>`;
+            }
+            html += `</div>`;
+        });
+
+        container.innerHTML = html;
+        updateUI();
+    }
+
+    function renderQuestionHTML(qData) {
+        let optionsHtml = qData.options.map((opt, i) => `
+            <label class="option-label">
+                <input type="radio" name="${qData.qId}" value="${i}" onchange="saveAnswer('${qData.qId}', ${i})">
+                ${opt}
+            </label>
+        `).join("");
+        
+        return `
+            <div class="question-text">${qData.question}</div>
+            <div class="options-grid">${optionsHtml}</div>
+        `;
+    }
+
+    function saveAnswer(qId, val) {
+        userAnswers[qId] = val;
+    }
+
+    function updateUI() {
+        // Cập nhật hiển thị Slide
+        document.querySelectorAll('.slide').forEach((el, i) => {
+            el.classList.toggle('active', i === currentSlide);
+        });
+
+        // Điều khiển Nút
+        document.getElementById("btn-prev").style.visibility = currentSlide === 0 ? "hidden" : "visible";
+        
+        const isLastSlide = currentSlide === slidesData.length - 1;
+        document.getElementById("btn-next").style.display = isLastSlide ? "none" : "block";
+        document.getElementById("btn-submit").style.display = isLastSlide ? "block" : "none";
+
+        // Progress Text
+        document.getElementById("progress-text").innerText = `Trang ${currentSlide + 1} / ${slidesData.length}`;
+    }
+
+    function nextSlide() {
+        if (currentSlide < slidesData.length - 1) {
+            currentSlide++;
+            updateUI();
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateUI();
+        }
+    }
+
+    function submitTest() {
+        document.getElementById("slides-container").style.display = "none";
+        document.querySelector(".navigation").style.display = "none";
+        document.getElementById("progress-text").style.display = "none";
+        document.querySelector(".course-title").innerText = "Kết Quả Chi Tiết";
+
+        const resultsContainer = document.getElementById("results-container");
+        resultsContainer.style.display = "block";
+
+        let score = 0;
+        let resultsHTML = "";
+
+        allQuestions.forEach((q, index) => {
+            const userAnsIndex = userAnswers[q.qId];
+            const isCorrect = userAnsIndex === q.answer;
+            if (isCorrect) score++;
+
+            const statusClass = isCorrect ? "correct" : "incorrect";
+            const statusText = isCorrect ? "✅ ĐÚNG" : "❌ SAI";
+            
+            const userAnswerText = userAnsIndex !== undefined ? q.options[userAnsIndex] : "<i>Chưa chọn</i>";
+            const correctAnswerText = q.options[q.answer];
+
+            resultsHTML += `
+                <div class="result-item ${statusClass}">
+                    <div class="question-text">Câu ${index + 1}: ${q.question}</div>
+                    <div style="margin-bottom: 8px;"><strong>${statusText}</strong> | Bạn chọn: ${userAnswerText}</div>
+                    ${!isCorrect ? `<div><strong>Đáp án đúng:</strong> ${correctAnswerText}</div>` : ""}
+                    <div class="explanation"><strong>Giải thích:</strong> ${q.exp}</div>
+                </div>
+            `;
+        });
+
+        resultsContainer.innerHTML = `
+            <div class="score-board">
+                Hoàn thành! Số câu đúng: ${score} / ${allQuestions.length}
+            </div>
+            ${resultsHTML}
+        `;
+    }
+
+    // Khởi tạo bài học khi load xong trang
+    window.onload = init;
+</script>
+
+</body>
+</html>
