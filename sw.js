@@ -23,9 +23,19 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// Network-first: luôn ưu tiên tải mới nhất, chỉ dùng cache khi mất mạng hoàn toàn
+// Network-first cho ĐÚNG file thuộc app (cùng origin) — luôn ưu tiên tải mới nhất,
+// chỉ dùng cache khi mất mạng hoàn toàn.
+//
+// QUAN TRỌNG: request ra NGOÀI origin (vd gọi Apps Script script.google.com, hay
+// Drive googleapis.com) phải được BỎ QUA hoàn toàn, để trình duyệt tự xử lý như
+// bình thường. Apps Script trả về qua 1 bước redirect 302 sang URL tạm của Google —
+// nếu Service Worker chặn ngang để tự fetch lại, kiểu redirect chéo-domain này dễ
+// biến thành phản hồi rỗng/không đọc được, khiến gọi API bị sai kết quả (đây chính
+// là nguyên nhân tìm học viên không ra trên bản PWA).
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return; // để mặc trình duyệt tự xử lý
   e.respondWith(
     fetch(e.request).catch(() => caches.match(e.request))
   );
